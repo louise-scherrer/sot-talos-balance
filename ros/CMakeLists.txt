@@ -1,1 +1,2 @@
 INSTALL(DIRECTORY sot_talos_balance DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
+

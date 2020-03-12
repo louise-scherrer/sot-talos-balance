@@ -26,7 +26,7 @@ SET(TEST_test_distribute_LIBS
   )
 
 SET(TEST_test_distribute_EXT_LIBS
-  sot-core::sot-core ${CMAKE_INSTALL_PREFIX}/lib/plugin/parameter-server.so
+  sot-core::sot-core sot-core::parameter-server
   )
 
 #test paths and names (without .cpp extension)
