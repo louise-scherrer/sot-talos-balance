@@ -3,18 +3,25 @@
 @author: Gabriele Buondonno
 This module contains utilities for running the tests
 """
+# flake8: noqa
 from __future__ import print_function
 
-from time import sleep
 from distutils.util import strtobool
+from time import sleep
 
 import rospy
-
 from std_srvs.srv import *
-from dynamic_graph_bridge.srv import *
+
 from dynamic_graph_bridge_msgs.srv import *
 
+try:
+    # Python 2
+    input = raw_input  # noqa
+except NameError:
+    pass
+
 runCommandClient = rospy.ServiceProxy('run_command', RunCommand)
+
 
 def runVerboseCommandClient(code, verbosity=1):
     """
@@ -23,20 +30,21 @@ def runVerboseCommandClient(code, verbosity=1):
     verbosity = 1 (default): if runCommandClient returns something on the standard output or standard error, print it
     verbosity = 2: print the whole answer returned by runCommandClient
     """
-    if verbosity>1:
+    if verbosity > 1:
         print(code)
 
     out = runCommandClient(code)
 
-    if verbosity>1:
+    if verbosity > 1:
         print(out)
-    elif verbosity==1 and (out.standardoutput or out.standarderror):
+    elif verbosity == 1 and (out.standardoutput or out.standarderror):
         print("command: " + code)
         if out.standardoutput:
             print("standardoutput: " + out.standardoutput)
         if out.standarderror:
-            print("standarderror: "  + out.standarderror)
+            print("standarderror: " + out.standarderror)
     return out
+
 
 def evalCommandClient(code):
     """
@@ -45,8 +53,9 @@ def evalCommandClient(code):
     """
     return eval(runCommandClient(code).result)
 
-def launch_script(code,title,description = "",verbosity=1):
-    raw_input(title+':   '+description)
+
+def launch_script(code, title, description="", verbosity=1):
+    input(title + ':   ' + description)
     rospy.loginfo(title)
     rospy.loginfo(code)
     indent = '  '
@@ -57,7 +66,7 @@ def launch_script(code,title,description = "",verbosity=1):
                 codeblock += '\n' + line
                 continue
             else:
-                answer = runVerboseCommandClient(str(codeblock),verbosity)
+                answer = runVerboseCommandClient(str(codeblock), verbosity)
                 rospy.logdebug(answer)
                 indenting = False
         if line != '' and line[0] != '#':
@@ -65,11 +74,12 @@ def launch_script(code,title,description = "",verbosity=1):
                 indenting = True
                 codeblock = line
             else:
-                answer = runVerboseCommandClient(str(line),verbosity)
+                answer = runVerboseCommandClient(str(line), verbosity)
                 rospy.logdebug(answer)
-    rospy.loginfo("...done with "+title)
+    rospy.loginfo("...done with " + title)
 
-def run_test(appli,verbosity=1):
+
+def run_test(appli, verbosity=1):
     try:
         rospy.loginfo("Waiting for run_command")
         rospy.wait_for_service('/run_command')
@@ -81,66 +91,70 @@ def run_test(appli,verbosity=1):
 
         runCommandStartDynamicGraph = rospy.ServiceProxy('start_dynamic_graph', Empty)
 
-        initCode = open( appli, "r").read().split("\n")
-    
+        initCode = open(appli, "r").read().split("\n")
+
         rospy.loginfo("Stack of Tasks launched")
 
-        launch_script(initCode,'initialize SoT',verbosity=verbosity)
-        raw_input("Wait before starting the dynamic graph")
+        launch_script(initCode, 'initialize SoT', verbosity=verbosity)
+        input("Wait before starting the dynamic graph")
         runCommandStartDynamicGraph()
         print()
-    except rospy.ServiceException, e:
+    except rospy.ServiceException as e:
         rospy.logerr("Service call failed: %s" % e)
 
+
 def ask_for_confirmation(text):
-    c = raw_input(text+" [y/N] ")
+    c = input(text + " [y/N] ")
     try:
         return strtobool(c)
-    except:
+    except Exception:
         return False
 
-def run_ft_calibration(sensor_name,force=False):
+
+def run_ft_calibration(sensor_name, force=False):
     cb = force
     if not cb:
         cb = ask_for_confirmation("Calibrate force sensors?")
     if cb:
         print("Calibrating sensors...")
-        runCommandClient(sensor_name+'.calibrateFeetSensor()')
-        sleep(1.0) # TODO: get time/state from F/T sensor
+        runCommandClient(sensor_name + '.calibrateFeetSensor()')
+        sleep(1.0)  # TODO: get time/state from F/T sensor
         print("Sensors are calibrated!")
         print("You can now put the robot on the ground")
     else:
         print("Skipping sensor calibration")
 
-def run_ft_wrist_calibration(sensor_name,force=False):
+
+def run_ft_wrist_calibration(sensor_name, force=False):
     cb = False
     if force:
         cb = True
     else:
-        c = raw_input("Calibrate wrist force sensors? [y/N] ")
+        c = input("Calibrate wrist force sensors? [y/N] ")
         try:
             cb = strtobool(c)
-        except:
+        except Exception:
             cb = False
     if cb:
-        raw_input("Wait before running the calibration")
+        input("Wait before running the calibration")
         print("Calibrating sensors...")
-        runCommandClient(sensor_name+'.calibrateWristSensor()')
-        sleep(1.0) # TODO: get time/state from F/T sensor
+        runCommandClient(sensor_name + '.calibrateWristSensor()')
+        sleep(1.0)  # TODO: get time/state from F/T sensor
         print("Sensors are calibrated!")
     else:
         print("Skipping sensor calibration")
 
+
 def get_file_folder(argv, send=True):
-    if len(argv)==1:
+    if len(argv) == 1:
         test_folder = None
         sot_talos_balance_folder = False
         print('No folder data')
-    elif len(argv)==2:
+    elif len(argv) == 2:
         test_folder = argv[1]
         sot_talos_balance_folder = False
         print('Using folder ' + test_folder)
-    elif len(argv)==3:
+    elif len(argv) == 3:
         if argv[1] != '-0':
             raise ValueError("Unrecognized option: " + argv[1])
         test_folder = argv[2]

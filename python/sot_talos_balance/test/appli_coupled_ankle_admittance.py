@@ -1,15 +1,13 @@
-from sot_talos_balance.coupled_admittance_controller import CoupledAdmittanceController
-from dynamic_graph.sot.core.meta_tasks_kine import MetaTaskKine6d, MetaTaskKineCom, gotoNd
-from sot_talos_balance.meta_task_joint import MetaTaskKineJoint
-from dynamic_graph.sot.core import Task, FeaturePosture
-from dynamic_graph.sot.core.operator import Selec_of_vector
-from dynamic_graph.sot.core.operator import Add_of_vector
+# flake8: noqa
 from dynamic_graph import plug
-from dynamic_graph.sot.core import SOT
+from dynamic_graph.ros import RosPublish, RosSubscribe
+from dynamic_graph.sot.core import SOT, FeaturePosture, Task
+from dynamic_graph.sot.core.meta_tasks_kine import MetaTaskKine6d, MetaTaskKineCom, gotoNd
+from dynamic_graph.sot.core.operator import Add_of_vector, Selec_of_vector
 
-
-from dynamic_graph.ros import RosSubscribe, RosPublish
+from sot_talos_balance.coupled_admittance_controller import CoupledAdmittanceController
 from sot_talos_balance.create_entities_utils import *
+from sot_talos_balance.meta_task_joint import MetaTaskKineJoint
 
 N_JOINTS = 32
 N_CONFIG = N_JOINTS + 6
@@ -32,11 +30,11 @@ tauDesPitch = [0.0]
 # ----------  ADMITTANCE CONTROLLERS ----------
 # --- PITCH
 robot.tauselecRP = Selec_of_vector("tauselecRP")
-robot.tauselecRP.selec(RightPitchJoint, RightPitchJoint+1)
+robot.tauselecRP.selec(RightPitchJoint, RightPitchJoint + 1)
 plug(robot.device.ptorque, robot.tauselecRP.sin)
 
 robot.tauselecLP = Selec_of_vector("tauselecLP")
-robot.tauselecLP.selec(LeftPitchJoint, LeftPitchJoint+1)
+robot.tauselecLP.selec(LeftPitchJoint, LeftPitchJoint + 1)
 plug(robot.device.ptorque, robot.tauselecLP.sin)
 
 robot.pitchController = CoupledAdmittanceController("pitchController")
@@ -49,11 +47,11 @@ plug(robot.tauselecLP.sout, robot.pitchController.tauL)
 
 # --- ROLL
 robot.tauselecRR = Selec_of_vector("tauselecRR")
-robot.tauselecRR.selec(RightRollJoint, RightRollJoint+1)
+robot.tauselecRR.selec(RightRollJoint, RightRollJoint + 1)
 plug(robot.device.ptorque, robot.tauselecRR.sin)
 
 robot.tauselecLR = Selec_of_vector("tauselecLR")
-robot.tauselecLR.selec(LeftRollJoint, LeftRollJoint+1)
+robot.tauselecLR.selec(LeftRollJoint, LeftRollJoint + 1)
 plug(robot.device.ptorque, robot.tauselecLR.sin)
 
 robot.rollController = CoupledAdmittanceController("rollController")
@@ -66,28 +64,28 @@ plug(robot.tauselecLR.sout, robot.rollController.tauL)
 
 # ----------  TASKS ----------
 # RIGHT PITCH
-robot.taskRP = MetaTaskKineJoint(robot.dynamic, RightPitchJoint+6)
+robot.taskRP = MetaTaskKineJoint(robot.dynamic, RightPitchJoint + 6)
 robot.taskRP.task.controlGain.value = 0
 robot.taskRP.task.setWithDerivative(True)
 robot.taskRP.featureDes.errorIN.value = [0.0]
 plug(robot.pitchController.dqRefR, robot.taskRP.featureDes.errordotIN)
 
 #  RIGHT ROLL
-robot.taskRR = MetaTaskKineJoint(robot.dynamic, RightRollJoint+6)
+robot.taskRR = MetaTaskKineJoint(robot.dynamic, RightRollJoint + 6)
 robot.taskRR.task.controlGain.value = 0
 robot.taskRR.task.setWithDerivative(True)
 robot.taskRR.featureDes.errorIN.value = [0.0]
 plug(robot.rollController.dqRefR, robot.taskRR.featureDes.errordotIN)
 
 # --- LEFT PITCH
-robot.taskLP = MetaTaskKineJoint(robot.dynamic, LeftPitchJoint+6)
+robot.taskLP = MetaTaskKineJoint(robot.dynamic, LeftPitchJoint + 6)
 robot.taskLP.task.controlGain.value = 0
 robot.taskLP.task.setWithDerivative(True)
 robot.taskLP.featureDes.errorIN.value = [0.0]
 plug(robot.pitchController.dqRefL, robot.taskLP.featureDes.errordotIN)
 
 # --- LEFT ROLL
-robot.taskLR = MetaTaskKineJoint(robot.dynamic, LeftRollJoint+6)
+robot.taskLR = MetaTaskKineJoint(robot.dynamic, LeftRollJoint + 6)
 robot.taskLR.task.controlGain.value = 0
 robot.taskLR.task.setWithDerivative(True)
 robot.taskLR.featureDes.errorIN.value = [0.0]
@@ -95,7 +93,7 @@ plug(robot.rollController.dqRefL, robot.taskLR.featureDes.errordotIN)
 
 # -------------------------- SOT CONTROL --------------------------
 # --- Posture
-robot.taskPosture = Task ('taskPosture')
+robot.taskPosture = Task('taskPosture')
 robot.taskPosture.feature = FeaturePosture('featurePosture')
 
 q = list(robot.dynamic.position.value)
@@ -103,7 +101,7 @@ robot.taskPosture.feature.state.value = q
 robot.taskPosture.feature.posture.value = q
 
 for i in range(6, 38):
-  robot.taskPosture.feature.selectDof(i, True)
+    robot.taskPosture.feature.selectDof(i, True)
 
 robot.taskPosture.controlGain.value = 100.0
 robot.taskPosture.add(robot.taskPosture.feature.name)
@@ -112,7 +110,7 @@ plug(robot.dynamic.position, robot.taskPosture.feature.state)
 # --- SOT
 robot.sot = SOT('sot')
 robot.sot.setSize(robot.dynamic.getDimension())
-plug(robot.sot.control,robot.device.control)
+plug(robot.sot.control, robot.device.control)
 
 robot.sot.push(robot.taskRP.task.name)
 robot.sot.push(robot.taskLP.task.name)
@@ -123,23 +121,22 @@ robot.device.control.recompute(0)
 
 # -------------------------- PLOTS --------------------------
 # --- ROS PUBLISHER
-robot.publisher = create_rospublish(robot, 'robot_publisher')        
+robot.publisher = create_rospublish(robot, 'robot_publisher')
 
-create_topic(robot.publisher, robot.pitchController, 'tauL', robot = robot, data_type='vector')
-create_topic(robot.publisher, robot.rollController, 'tauL', robot = robot, data_type='vector')
-create_topic(robot.publisher, robot.pitchController, 'tauR', robot = robot, data_type='vector')
-create_topic(robot.publisher, robot.rollController, 'tauR', robot = robot, data_type='vector')
+create_topic(robot.publisher, robot.pitchController, 'tauL', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.rollController, 'tauL', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.pitchController, 'tauR', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.rollController, 'tauR', robot=robot, data_type='vector')
 
-create_topic(robot.publisher, robot.pitchController, 'tauDesL', robot = robot, data_type='vector')
-create_topic(robot.publisher, robot.rollController, 'tauDesL', robot = robot, data_type='vector')
-create_topic(robot.publisher, robot.pitchController, 'tauDesR', robot = robot, data_type='vector')
-create_topic(robot.publisher, robot.rollController, 'tauDesR', robot = robot, data_type='vector')
+create_topic(robot.publisher, robot.pitchController, 'tauDesL', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.rollController, 'tauDesL', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.pitchController, 'tauDesR', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.rollController, 'tauDesR', robot=robot, data_type='vector')
 
-create_topic(robot.publisher, robot.pitchController, 'dqRefL', robot = robot, data_type='vector')
-create_topic(robot.publisher, robot.rollController, 'dqRefL', robot = robot, data_type='vector')
-create_topic(robot.publisher, robot.pitchController, 'dqRefR', robot = robot, data_type='vector')
-create_topic(robot.publisher, robot.rollController, 'dqRefR', robot = robot, data_type='vector')
-
+create_topic(robot.publisher, robot.pitchController, 'dqRefL', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.rollController, 'dqRefL', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.pitchController, 'dqRefR', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.rollController, 'dqRefR', robot=robot, data_type='vector')
 
 # # --- ROS SUBSCRIBER
 robot.subscriber = RosSubscribe("ankle_joint_subscriber")

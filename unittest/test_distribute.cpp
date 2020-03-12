@@ -9,6 +9,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include "test-paths.h"
+
 using namespace dynamicgraph::sot;
 using namespace dynamicgraph::sot::talos_balance;
 
@@ -34,12 +36,7 @@ BOOST_AUTO_TEST_CASE ( test_distribute )
 
   std::cout << "q: " << q.transpose() << std::endl;
 
-  //from rospkg import RosPack
-  //rospack = RosPack()
-  //urdfPath = rospack.get_path('talos_data')+"/urdf/talos_reduced.urdf"
-  //urdfDir = [rospack.get_path('talos_data')+"/../"]
-
-  std::string urdfPath = "/opt/openrobots/share/talos_data/urdf/talos_reduced.urdf";
+  std::string urdfPath = TALOS_DATA_MODEL_DIR "urdf/talos_reduced.urdf";
 
   pinocchio::Model model;
   pinocchio::urdf::buildModel(urdfPath, pinocchio::JointModelFreeFlyer(), model);
@@ -317,4 +314,3 @@ BOOST_AUTO_TEST_CASE ( test_distribute )
 }
 
 BOOST_AUTO_TEST_SUITE_END ()
-

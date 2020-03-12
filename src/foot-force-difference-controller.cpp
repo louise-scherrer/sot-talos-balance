@@ -32,7 +32,7 @@ namespace dynamicgraph
       using namespace dg;
       using namespace dg::command;
 
-#define INPUT_SIGNALS  m_phaseSIN << m_gainSwingSIN << m_gainStanceSIN << m_gainDoubleSIN << m_dfzAdmittanceSIN << m_vdcFrequencySIN << m_vdcDampingSIN << m_wrenchRightDesSIN << m_wrenchLeftDesSIN << m_wrenchRightSIN << m_wrenchLeftSIN << m_posRightDesSIN << m_posLeftDesSIN << m_posRightSIN << m_posLeftSIN
+#define INPUT_SIGNALS  m_phaseSIN << m_gainSwingSIN << m_gainStanceSIN << m_gainDoubleSIN << m_dfzAdmittanceSIN << m_vdcFrequencySIN << m_vdcDampingSIN << m_swingAdmittanceSIN << m_wrenchRightDesSIN << m_wrenchLeftDesSIN << m_wrenchRightSIN << m_wrenchLeftSIN << m_posRightDesSIN << m_posLeftDesSIN << m_posRightSIN << m_posLeftSIN
 
 #define INNER_SIGNALS m_dz_ctrlSOUT << m_dz_posSOUT
 
@@ -58,6 +58,7 @@ namespace dynamicgraph
           , CONSTRUCT_SIGNAL_IN(dfzAdmittance, double)
           , CONSTRUCT_SIGNAL_IN(vdcFrequency, double)
           , CONSTRUCT_SIGNAL_IN(vdcDamping, double)
+          , CONSTRUCT_SIGNAL_IN(swingAdmittance, dynamicgraph::Vector)
           , CONSTRUCT_SIGNAL_IN(wrenchRightDes, dynamicgraph::Vector)
           , CONSTRUCT_SIGNAL_IN(wrenchLeftDes, dynamicgraph::Vector)
           , CONSTRUCT_SIGNAL_IN(wrenchRight, dynamicgraph::Vector)
@@ -68,21 +69,37 @@ namespace dynamicgraph
           , CONSTRUCT_SIGNAL_IN(posLeft, MatrixHomogeneous)
           , CONSTRUCT_SIGNAL_INNER(dz_ctrl, double, m_dfzAdmittanceSIN << m_vdcDampingSIN << m_wrenchRightDesSIN << m_wrenchLeftDesSIN << m_wrenchRightSIN << m_wrenchLeftSIN << m_posRightSIN << m_posLeftSIN)
           , CONSTRUCT_SIGNAL_INNER(dz_pos, double, m_vdcFrequencySIN << m_posRightDesSIN << m_posLeftDesSIN << m_posRightSIN << m_posLeftSIN)
-          , CONSTRUCT_SIGNAL_OUT(vRight, dynamicgraph::Vector, m_phaseSIN << m_dz_ctrlSINNER << m_dz_posSINNER)
-          , CONSTRUCT_SIGNAL_OUT(vLeft,  dynamicgraph::Vector, m_phaseSIN << m_dz_ctrlSINNER << m_dz_posSINNER)
+          , CONSTRUCT_SIGNAL_OUT(vRight, dynamicgraph::Vector, m_phaseSIN << m_dz_ctrlSINNER << m_dz_posSINNER << m_swingAdmittanceSIN << m_wrenchRightSIN)
+          , CONSTRUCT_SIGNAL_OUT(vLeft,  dynamicgraph::Vector, m_phaseSIN << m_dz_ctrlSINNER << m_dz_posSINNER << m_swingAdmittanceSIN << m_wrenchLeftSIN)
           , CONSTRUCT_SIGNAL_OUT(gainRight, double, m_phaseSIN << m_gainSwingSIN << m_gainStanceSIN << m_gainDoubleSIN)
           , CONSTRUCT_SIGNAL_OUT(gainLeft,  double, m_phaseSIN << m_gainSwingSIN << m_gainStanceSIN << m_gainDoubleSIN)
+          , m_eps(15)
           , m_initSucceeded(false)
       {
         Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
 
         /* Commands. */
         addCommand("init", makeCommandVoid0(*this, &FootForceDifferenceController::init, docCommandVoid0("Initialize the entity.")));
+        addCommand("getForceThreshold", makeDirectGetter(*this,&m_eps, docDirectGetter("Get force threshold","double")));
+        addCommand("setForceThreshold", makeDirectSetter(*this,&m_eps, docDirectSetter("Set force threshold","double")));
       }
 
       void FootForceDifferenceController::init()
       {
         m_initSucceeded = true;
+      }
+
+      Eigen::Vector3d FootForceDifferenceController::calcSwingAdmittance(const dg::Vector & wrench, const dg::Vector & swingAdmittance)
+      {
+        assert(swingAdmittance.size()==3);
+
+        Eigen::Vector3d res;
+        for(int i=0; i<3; i++)
+          if(wrench[i] > m_eps || wrench[i] < -m_eps)
+            res[i] = swingAdmittance[i]*wrench[i];
+          else
+            res[i] = 0;
+        return res;
       }
 
       /* ------------------------------------------------------------------- */
@@ -168,8 +185,14 @@ namespace dynamicgraph
 
         s.setZero(6);
 
-        if(phase==0)
+        if(phase==0) {
           s[2] = 0.5 * (dz_pos + dz_ctrl);
+        }
+        else if(m_swingAdmittanceSIN.isPlugged() && phase>0) {
+          const Eigen::VectorXd & wrenchRight = m_wrenchRightSIN(iter);
+          const Eigen::VectorXd & swingAdmittance = m_swingAdmittanceSIN(iter);
+          s.head<3>() = calcSwingAdmittance(wrenchRight, swingAdmittance);
+        }
 
         return s;
       }
@@ -190,8 +213,14 @@ namespace dynamicgraph
 
         s.setZero(6);
 
-        if(phase==0)
+        if(phase==0) {
           s[2] = 0.5 * (dz_pos - dz_ctrl);
+        }
+        else if(m_swingAdmittanceSIN.isPlugged() &&  phase<0) {
+          const Eigen::VectorXd & wrenchLeft = m_wrenchLeftSIN(iter);
+          const Eigen::VectorXd & swingAdmittance = m_swingAdmittanceSIN(iter);
+          s.head<3>() = calcSwingAdmittance(wrenchLeft, swingAdmittance);
+        }
 
         return s;
       }

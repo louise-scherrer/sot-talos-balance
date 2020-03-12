@@ -66,6 +66,7 @@ namespace dynamicgraph {
         /* --- SIGNALS --- */
         DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
         DECLARE_SIGNAL_IN(Ki, dynamicgraph::Vector);
+        DECLARE_SIGNAL_IN(Kz, dynamicgraph::Vector);
         DECLARE_SIGNAL_IN(decayFactor, double);
         DECLARE_SIGNAL_IN(omega, double);
         DECLARE_SIGNAL_IN(mass, double);
@@ -73,6 +74,7 @@ namespace dynamicgraph {
         DECLARE_SIGNAL_IN(dcm, dynamicgraph::Vector);
         DECLARE_SIGNAL_IN(dcmDes, dynamicgraph::Vector);
         DECLARE_SIGNAL_IN(zmpDes, dynamicgraph::Vector);
+        DECLARE_SIGNAL_IN(zmp, dynamicgraph::Vector);
 
         DECLARE_SIGNAL_OUT(zmpRef, dynamicgraph::Vector);
         DECLARE_SIGNAL_OUT(wrenchRef, dynamicgraph::Vector);

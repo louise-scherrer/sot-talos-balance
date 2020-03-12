@@ -46,7 +46,7 @@
 #include <pinocchio/multibody/model.hpp>
 #include <pinocchio/multibody/data.hpp>
 
-#include <eigen-quadprog/QuadProg.h>
+#include <eiquadprog/eiquadprog-fast.hpp>
 
 namespace dynamicgraph {
   namespace sot {
@@ -133,8 +133,8 @@ namespace dynamicgraph {
         void computeWrenchFaceMatrix(const double mu);
         Eigen::Matrix<double, 16, 6> m_wrenchFaceMatrix; // for modelling contact
 
-        Eigen::QuadProgDense m_qp1; // saturate wrench
-        Eigen::QuadProgDense m_qp2; // distribute wrench
+        eiquadprog::solvers::EiquadprogFast m_qp1; // saturate wrench
+        eiquadprog::solvers::EiquadprogFast m_qp2; // distribute wrench
 
         // QP problem matrices -- SSP
         Eigen::MatrixXd m_Q1;
@@ -146,6 +146,8 @@ namespace dynamicgraph {
         Eigen::MatrixXd m_Aineq1;
         Eigen::VectorXd m_Bineq1;
 
+        Eigen::VectorXd m_result1;
+
         // QP problem matrices -- DSP
         Eigen::MatrixXd m_Q2;
         Eigen::VectorXd m_C2;
@@ -155,6 +157,8 @@ namespace dynamicgraph {
 
         Eigen::MatrixXd m_Aineq2;
         Eigen::VectorXd m_Bineq2;
+
+        Eigen::VectorXd m_result2;
 
         double m_wSum;
         double m_wNorm;

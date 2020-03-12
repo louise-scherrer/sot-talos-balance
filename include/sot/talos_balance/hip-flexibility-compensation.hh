@@ -60,6 +60,9 @@ class HIPFLEXIBILITYCOMPENSATION_EXPORT HipFlexibilityCompensation
   HipFlexibilityCompensation(const std::string& name);
 
   /* --- SIGNALS --- */
+  /// \brief Walking phase
+  DECLARE_SIGNAL_IN(phase, int);
+
   /// \brief  Desired joint configuration of the robot
   DECLARE_SIGNAL_IN(q_des, dynamicgraph::Vector);
   /// \brief  Current torque mesured at each joint
@@ -106,6 +109,7 @@ class HIPFLEXIBILITYCOMPENSATION_EXPORT HipFlexibilityCompensation
   double m_rate_limiter;
   dynamicgraph::Vector m_previous_delta_q;
   dynamicgraph::Vector m_previous_tau;
+  dynamicgraph::Vector m_limitedSignal;
 
   RobotUtilShrPtr m_robot_util;
 

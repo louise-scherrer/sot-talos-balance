@@ -1,51 +1,89 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <root version="2.3.0">
- <tabbed_widget name="Main Window" parent="main_window">
+ <tabbed_widget parent="main_window" name="Main Window">
   <plotmatrix rows="2" columns="3" tab_name="plot">
    <plot row="0" col="0">
-    <range top="-1.926198" bottom="-2.704815" left="0.000000" right="11.113000"/>
+    <range bottom="-64.965137" top="117.614916" left="-21.733000" right="-11.738000"/>
     <limitY/>
-    <curve name="/sot/dcmCtrl/wrenchRef/data.0" R="20" G="100" custom_transform="noTransform" B="160"/>
-    <curve name="/sot/distribute/wrenchRef/data.0" R="247" G="0" custom_transform="noTransform" B="247"/>
+    <curve R="20" B="160" G="100" name="/sot/dcmCtrl/wrenchRef/data.0" custom_transform="noTransform"/>
+    <curve R="247" B="247" G="0" name="/sot/distribute/wrenchRef/data.0" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot row="1" col="0">
-    <range top="-0.947004" bottom="-1.368506" left="0.000000" right="11.113000"/>
+    <range bottom="-64.965137" top="117.614916" left="-21.733000" right="-11.738000"/>
     <limitY/>
-    <curve name="/sot/distribute/wrenchLeft/data.0" R="80" G="180" custom_transform="noTransform" B="127"/>
-    <curve name="/sot/distribute/wrenchRight/data.0" R="20" G="100" custom_transform="noTransform" B="160"/>
+    <curve R="80" B="127" G="180" name="/sot/distribute/wrenchLeft/data.0" custom_transform="noTransform"/>
+    <curve R="20" B="160" G="100" name="/sot/distribute/wrenchRight/data.0" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot row="0" col="1">
-    <range top="1.292420" bottom="1.087894" left="0.000000" right="11.113000"/>
+    <range bottom="-70.960893" top="83.557378" left="-21.733000" right="-11.738000"/>
     <limitY/>
-    <curve name="/sot/dcmCtrl/wrenchRef/data.1" R="5" G="116" custom_transform="noTransform" B="13"/>
-    <curve name="/sot/distribute/wrenchRef/data.1" R="0" G="51" custom_transform="noTransform" B="238"/>
+    <curve R="5" B="13" G="116" name="/sot/dcmCtrl/wrenchRef/data.1" custom_transform="noTransform"/>
+    <curve R="0" B="238" G="51" name="/sot/distribute/wrenchRef/data.1" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot row="1" col="1">
-    <range top="0.994414" bottom="0.195436" left="0.000000" right="11.113000"/>
+    <range bottom="-70.960893" top="83.557378" left="-21.733000" right="-11.738000"/>
     <limitY/>
-    <curve name="/sot/distribute/wrenchLeft/data.1" R="244" G="83" custom_transform="noTransform" B="29"/>
-    <curve name="/sot/distribute/wrenchRight/data.1" R="5" G="116" custom_transform="noTransform" B="13"/>
+    <curve R="244" B="29" G="83" name="/sot/distribute/wrenchLeft/data.1" custom_transform="noTransform"/>
+    <curve R="5" B="13" G="116" name="/sot/distribute/wrenchRight/data.1" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot row="0" col="2">
-    <range top="885.570204" bottom="885.570203" left="0.000000" right="11.113000"/>
+    <range bottom="885.570204" top="885.570204" left="-21.733000" right="-11.738000"/>
     <limitY/>
-    <curve name="/sot/dcmCtrl/wrenchRef/data.2" R="255" G="19" custom_transform="noTransform" B="24"/>
-    <curve name="/sot/distribute/wrenchRef/data.2" R="0" G="119" custom_transform="noTransform" B="119"/>
+    <curve R="255" B="24" G="19" name="/sot/dcmCtrl/wrenchRef/data.2" custom_transform="noTransform"/>
+    <curve R="0" B="119" G="119" name="/sot/distribute/wrenchRef/data.2" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot row="1" col="2">
-    <range top="442.786545" bottom="442.783658" left="0.000000" right="11.113000"/>
+    <range bottom="-22.139255" top="907.709459" left="-21.733000" right="-11.738000"/>
     <limitY/>
-    <curve name="/sot/distribute/wrenchLeft/data.2" R="142" G="52" custom_transform="noTransform" B="136"/>
-    <curve name="/sot/distribute/wrenchRight/data.2" R="255" G="19" custom_transform="noTransform" B="24"/>
+    <curve R="142" B="136" G="52" name="/sot/distribute/wrenchLeft/data.2" custom_transform="noTransform"/>
+    <curve R="255" B="24" G="19" name="/sot/distribute/wrenchRight/data.2" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
   </plotmatrix>
-  <currentPlotMatrix index="0"/>
+  <plotmatrix rows="2" columns="3" tab_name="plot">
+   <plot row="0" col="0">
+    <range bottom="58.812999" top="59.369892" left="24.225000" right="34.222000"/>
+    <limitY/>
+    <curve R="241" B="193" G="76" name="/sot/ftc/left_foot_force_out/data.0" custom_transform="noTransform"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot row="1" col="0">
+    <range bottom="-59.654389" top="-59.188734" left="24.225000" right="34.222000"/>
+    <limitY/>
+    <curve R="188" B="34" G="189" name="/sot/ftc/right_foot_force_out/data.0" custom_transform="noTransform"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot row="0" col="1">
+    <range bottom="-46.926824" top="-45.127294" left="24.225000" right="34.222000"/>
+    <limitY/>
+    <curve R="148" B="189" G="103" name="/sot/ftc/left_foot_force_out/data.1" custom_transform="noTransform"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot row="1" col="1">
+    <range bottom="45.588683" top="47.350587" left="24.225000" right="34.222000"/>
+    <limitY/>
+    <curve R="31" B="180" G="119" name="/sot/ftc/right_foot_force_out/data.1" custom_transform="noTransform"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot row="0" col="2">
+    <range bottom="416.204087" top="417.069832" left="24.225000" right="34.222000"/>
+    <limitY/>
+    <curve R="23" B="207" G="190" name="/sot/ftc/left_foot_force_out/data.2" custom_transform="noTransform"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot row="1" col="2">
+    <range bottom="445.899472" top="446.756994" left="24.225000" right="34.222000"/>
+    <limitY/>
+    <curve R="214" B="40" G="39" name="/sot/ftc/right_foot_force_out/data.2" custom_transform="noTransform"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <currentPlotMatrix index="1"/>
  </tabbed_widget>
  <use_relative_time_offset enabled="1"/>
  <!-- - - - - - - - - - - - - - - -->
@@ -67,8 +105,8 @@
    <discard_large_arrays value="true"/>
    <max_array_size value="100"/>
   </plugin>
-  <plugin ID="RosoutPublisherROS" status="idle"/>
-  <plugin ID="TopicPublisherROS" status="idle"/>
+  <plugin status="idle" ID="RosoutPublisherROS"/>
+  <plugin status="idle" ID="TopicPublisherROS"/>
  </Plugins>
  <!-- - - - - - - - - - - - - - - -->
  <previouslyLoaded_Datafiles/>

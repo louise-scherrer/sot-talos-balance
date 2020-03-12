@@ -37,6 +37,7 @@ namespace dynamicgraph
       namespace dg = ::dynamicgraph;
       using namespace dg;
       using namespace dg::command;
+      using namespace eiquadprog::solvers;
 
 //Size to be aligned                                      "-------------------------------------------------------"
 #define PROFILE_DISTRIBUTE_WRENCH_KINEMATICS_COMPUTATIONS "DistributeWrench: kinematics computations              "
@@ -94,18 +95,20 @@ namespace dynamicgraph
                       , m_Beq1(0)
                       , m_Aineq1(16,6)
                       , m_Bineq1(16)
+                      , m_result1(6)
                       , m_Q2(12,12)
                       , m_C2(12)
                       , m_Aeq2(0,12)
                       , m_Beq2(0)
                       , m_Aineq2(34,12)
                       , m_Bineq2(34)
+                      , m_result2(12)
                       , m_wAnkle(6)
       {
         Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
 
-        m_qp1.problem(6,0,16);
-        m_qp2.problem(12,0,34);
+        m_qp1.reset(6,0,16);
+        m_qp2.reset(12,0,34);
 
         /* Commands. */
         addCommand("init", makeCommandVoid1(*this, &DistributeWrench::init, docCommandVoid1("Initialize the entity.","Robot name")));
@@ -341,9 +344,11 @@ namespace dynamicgraph
         Bineq(32) = - m_eps;
         Bineq(33) = - m_eps;
 
-        const bool success = m_qp2.solve(Q, C, Aeq, Beq, Aineq, Bineq);
+        Eigen::VectorXd & result = m_result2;
 
-        m_emergency_stop_triggered = !success;
+        EiquadprogFast_status status = m_qp2.solve_quadprog(Q, C, Aeq, -Beq, -Aineq, Bineq, result);
+
+        m_emergency_stop_triggered = (status != EIQUADPROG_FAST_OPTIMAL);
 
         if(m_emergency_stop_triggered)
         {
@@ -352,7 +357,6 @@ namespace dynamicgraph
         }
         else
         {
-          const Eigen::VectorXd & result = m_qp2.result();
           m_wrenchLeft  = result.head<6>();
           m_wrenchRight = result.tail<6>();
         }
@@ -388,9 +392,11 @@ namespace dynamicgraph
         Eigen::VectorXd & Bineq = m_Bineq1;
         Bineq.setZero();
 
-        const bool success = m_qp1.solve(Q, C, Aeq, Beq, Aineq, Bineq);
+        Eigen::VectorXd & result = m_result1;
 
-        m_emergency_stop_triggered = !success;
+        EiquadprogFast_status status = m_qp1.solve_quadprog(Q, C, Aeq, -Beq, -Aineq, Bineq, result);
+
+        m_emergency_stop_triggered = (status != EIQUADPROG_FAST_OPTIMAL);
 
         if(m_emergency_stop_triggered)
         {
@@ -399,8 +405,6 @@ namespace dynamicgraph
         }
         else
         {
-          const Eigen::VectorXd & result = m_qp1.result();
-
           if(phase>0) {
             m_wrenchLeft  = result;
             m_wrenchRight.setZero(6);

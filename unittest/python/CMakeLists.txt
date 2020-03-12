@@ -21,6 +21,7 @@ SET(${PROJECT_NAME}_PYTHON_TESTS
   test_simple_admittance
   test_simple_distribute
   test_simple_zmp_estimator
+  test_simple_state_integrator
   test_state_transformation
   )
 

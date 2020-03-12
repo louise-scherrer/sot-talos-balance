@@ -1,5 +1,6 @@
-from sot_talos_balance.utils.run_test_utils import run_test, runCommandClient, evalCommandClient
 from time import sleep
+
+from sot_talos_balance.utils.run_test_utils import evalCommandClient, run_test, runCommandClient
 
 run_test('appli_admittance_single_joint_velocity_based.py')
 
@@ -13,4 +14,3 @@ tau = evalCommandClient('robot.device.ptorque.value[JOINT]')
 
 print("Desired torque: %f" % des_tau)
 print("Current torque: %f" % tau)
-

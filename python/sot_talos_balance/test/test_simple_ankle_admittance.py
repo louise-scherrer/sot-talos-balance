@@ -1,5 +1,6 @@
-from sot_talos_balance.utils.run_test_utils import *
 from time import sleep
+
+from sot_talos_balance.utils.run_test_utils import ask_for_confirmation, evalCommandClient, run_test, runCommandClient
 
 run_test('appli_simple_ankle_admittance.py')
 
@@ -16,7 +17,7 @@ if c:
     runCommandClient('robot.leftPitchAnkleController.tauDes.value = robot.device.ptorque.value[LeftPitchJoint]')
     runCommandClient('robot.rightRollAnkleController.tauDes.value = robot.device.ptorque.value[RightRollJoint]')
     runCommandClient('robot.leftRollAnkleController.tauDes.value = robot.device.ptorque.value[LeftRollJoint]')
-        
+
     print("Setting desired torques with current values")
 else:
     c2 = ask_for_confirmation("Do you want to use nul torques values as reference?")
@@ -34,7 +35,6 @@ else:
         runCommandClient('robot.leftRollAnkleController.tauDes.value = [0.0]')
 
         print("Setting desired torques with implemented values")
-
 
 print("Pushing the ankle tasks...")
 
@@ -56,4 +56,3 @@ tauDesLR = evalCommandClient('robot.leftRollAnkleController.tauDes.value')
 
 print("Desired torques: %f, %f, %f, %f" % (tauDesRP[0], tauDesLP[0], tauDesRR[0], tauDesLR[0]))
 print("Current torques: %f, %f, %f, %f" % (tauRP, tauLP, tauRR, tauLR))
-

@@ -5,6 +5,7 @@ SET(${PROJECT_NAME}_PYTHON_FILES
   create_entities_utils.py
   meta_task_config.py
   meta_task_joint.py
+  meta_task_pose.py
   motor_parameters.py
   )
 

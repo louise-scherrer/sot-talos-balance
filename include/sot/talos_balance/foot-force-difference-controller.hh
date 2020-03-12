@@ -75,6 +75,8 @@ namespace dynamicgraph {
         DECLARE_SIGNAL_IN(vdcFrequency, double);
         DECLARE_SIGNAL_IN(vdcDamping, double);
 
+        DECLARE_SIGNAL_IN(swingAdmittance, dynamicgraph::Vector);
+
         DECLARE_SIGNAL_IN(wrenchRightDes, dynamicgraph::Vector);
         DECLARE_SIGNAL_IN(wrenchLeftDes, dynamicgraph::Vector);
         DECLARE_SIGNAL_IN(wrenchRight, dynamicgraph::Vector);
@@ -99,6 +101,9 @@ namespace dynamicgraph {
         virtual void display( std::ostream& os ) const;
 
       protected:
+        Eigen::Vector3d calcSwingAdmittance(const dynamicgraph::Vector & wrench, const dynamicgraph::Vector & swingAdmittance);
+
+        double m_eps;
         bool m_initSucceeded;    /// true if the entity has been successfully initialized
 
       }; // class FootForceDifferenceController

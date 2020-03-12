@@ -1,15 +1,23 @@
 '''Test CoM admittance control as described in paper'''
-from sot_talos_balance.utils.run_test_utils import *
+from sys import argv
 from time import sleep
 
-from sys import argv
+from sot_talos_balance.utils.run_test_utils import (ask_for_confirmation, get_file_folder, run_ft_calibration,
+                                                    run_test, runCommandClient)
+
+try:
+    # Python 2
+    input = raw_input  # noqa
+except NameError:
+    pass
+
 test_folder, sot_talos_balance_folder = get_file_folder(argv)
 
 run_test('appli_dcm_zmp_control_ffdc.py')
 
 run_ft_calibration('robot.ftc')
 
-raw_input("Wait before running the test")
+input("Wait before running the test")
 
 # Connect ZMP reference and reset controllers
 print('Set controller')
@@ -20,8 +28,9 @@ runCommandClient('robot.com_admittance_control.setState(robot.wp.comDes.value,[0
 runCommandClient('robot.com_admittance_control.Kp.value = Kp_adm')
 runCommandClient('robot.dcm_control.resetDcmIntegralError()')
 runCommandClient('robot.dcm_control.Ki.value = Ki_dcm')
+runCommandClient('robot.dcm_control.Kz.value = Kz_dcm')
 
-raw_input("Wait before activating foot force difference control")
+input("Wait before activating foot force difference control")
 runCommandClient('robot.ffdc.dfzAdmittance.value = dfzAdmittance')
 runCommandClient('robot.ffdc.vdcFrequency.value = vdcFrequency')
 runCommandClient('robot.ffdc.vdcDamping.value = vdcDamping')
@@ -67,7 +76,7 @@ else:
     if c:
         print("Putting the robot in position...")
         runCommandClient('robot.comTrajGen.move(1,-0.08,10.0)')
-        runCommandClient('robot.rhoTrajGen.move(0,0.4,10.0)')
+        runCommandClient('robot.rhoTrajGen.move(0,0.3,10.0)')
         sleep(10.0)
         print("Robot is in position!")
 
@@ -108,9 +117,8 @@ else:
     else:
         print("Not raising the foot")
 
-#raw_input("Wait before dumping the data")
+input("Wait before dumping the data")
 
-#runCommandClient('dump_tracer(robot.tracer)')
+runCommandClient('dump_tracer(robot.tracer)')
 
 print('Bye!')
-

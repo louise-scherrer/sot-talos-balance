@@ -1,3 +1,4 @@
+# flake8: noqa
 from sot_talos_balance.create_entities_utils import *
 from sot_talos_balance.coupled_admittance_controller import CoupledAdmittanceController
 from sot_talos_balance.saturation import Saturation
@@ -539,7 +540,7 @@ plug(robot.dvdt.sout,robot.dynamic.acceleration)
 # -------------------------- PLOTS --------------------------
 
 # --- ROS PUBLISHER
-robot.publisher = create_rospublish(robot, 'robot_publisher')        
+robot.publisher = create_rospublish(robot, 'robot_publisher')
 
 create_topic(robot.publisher, robot.wp, 'comDes', robot = robot, data_type='vector')                      # desired CoM
 

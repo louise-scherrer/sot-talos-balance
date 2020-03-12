@@ -1,9 +1,15 @@
 '''Test CoM admittance control as described in paper, with pre-loaded movements'''
-from sot_talos_balance.utils.run_test_utils import *
-from time import sleep
-
 from sys import argv
-test_folder = sys.argv[1] if len(argv)>1 else 'TestKajita2003WalkingOnSpot64/DSP20SSP780'
+
+from sot_talos_balance.utils.run_test_utils import ask_for_confirmation, run_ft_calibration, run_test, runCommandClient
+
+try:
+    # Python 2
+    input = raw_input  # noqa
+except NameError:
+    pass
+
+test_folder = argv[1] if len(argv) > 1 else 'TestKajita2003WalkingOnSpot64/DSP20SSP780'
 print('Using folder ' + test_folder)
 
 runCommandClient('test_folder = "' + test_folder + '"')
@@ -11,7 +17,7 @@ runCommandClient('test_folder = "' + test_folder + '"')
 run_test('appli_dcmZmpControl_file.py')
 
 run_ft_calibration('robot.ftc')
-raw_input("Wait before running the test")
+input("Wait before running the test")
 
 # Connect ZMP reference and reset controllers
 print('Connect ZMP reference')
@@ -29,7 +35,6 @@ if c:
 else:
     print('Not executing the trajectory')
 
-raw_input("Wait before dumping the data")
+input("Wait before dumping the data")
 
 runCommandClient('dump_tracer(robot.tracer)')
-

@@ -29,7 +29,6 @@ TARGET_LINK_LIBRARIES(${LIBRARY_NAME} dynamic-graph::dynamic-graph)
 TARGET_LINK_LIBRARIES(${LIBRARY_NAME} sot-core::sot-core)
 PKG_CONFIG_USE_DEPENDENCY(${LIBRARY_NAME} pinocchio)
 PKG_CONFIG_USE_DEPENDENCY(${LIBRARY_NAME} parametric-curves)
-PKG_CONFIG_USE_DEPENDENCY(${LIBRARY_NAME} eigen-quadprog)
 
 IF(UNIX)
   TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${CMAKE_DL_LIBS})
@@ -49,6 +48,7 @@ ENDIF(NOT INSTALL_PYTHON_INTERFACE_ONLY)
 #This project will create many plugins as shared libraries, listed here
 SET(plugins
   example
+  delay
   boolean-identity
   round-double-to-int
   int-identity
@@ -57,6 +57,7 @@ SET(plugins
   quat-to-euler
   state-transformation
   simple-reference-frame
+  simple-state-integrator
   dummy-walking-pattern-generator
   simple-zmp-estimator
   simple-distribute-wrench

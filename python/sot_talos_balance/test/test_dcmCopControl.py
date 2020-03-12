@@ -1,14 +1,18 @@
 '''Test CoM admittance control as described in paper.'''
-from sot_talos_balance.utils.run_test_utils import *
 from time import sleep
 
-import matplotlib.pyplot as plt
-import numpy as np
+from sot_talos_balance.utils.run_test_utils import ask_for_confirmation, run_ft_calibration, run_test, runCommandClient
+
+try:
+    # Python 2
+    input = raw_input  # noqa
+except NameError:
+    pass
 
 run_test('appli_dcmCopControl.py')
 
 run_ft_calibration('robot.ftc')
-raw_input("Wait before running the test")
+input("Wait before running the test")
 
 # Connect ZMP reference and reset controllers
 print('Set controller')
@@ -92,7 +96,6 @@ if c:
 else:
     print("Not raising the foot")
 
-#raw_input("Wait before dumping the data")
+# input("Wait before dumping the data")
 
-#runCommandClient('dump_tracer(robot.tracer)')
-
+# runCommandClient('dump_tracer(robot.tracer)')

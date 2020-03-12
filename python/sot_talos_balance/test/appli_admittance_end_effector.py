@@ -1,18 +1,19 @@
-import sot_talos_balance.talos.parameter_server_conf as paramServerConfig
-import sot_talos_balance.talos.control_manager_conf as controlManagerConfig
-import sot_talos_balance.talos.base_estimator_conf as baseEstimatorConf
-import sot_talos_balance.talos.ft_wrist_calibration_conf as forceConf
-from sot_talos_balance.create_entities_utils import *
-from dynamic_graph.sot.core.meta_tasks_kine import MetaTaskKine6d
-from dynamic_graph.sot.core import SOT, Task, GainAdaptive, FeaturePosture
-from dynamic_graph import plug
-from dynamic_graph.sot.core.matrix_util import matrixToTuple
-from dynamic_graph.ros import RosSubscribe, RosPublish
-import numpy as np
+# flake8: noqa
 import math
 
+import numpy as np
+from dynamic_graph import plug
+from dynamic_graph.ros import RosPublish, RosSubscribe
+from dynamic_graph.sot.core import SOT, FeaturePosture, GainAdaptive, Task
+from dynamic_graph.sot.core.matrix_util import matrixToTuple
+from dynamic_graph.sot.core.meta_tasks_kine import MetaTaskKine6d
 from dynamic_graph.tracer_real_time import TracerRealTime
-from sot_talos_balance.create_entities_utils import addTrace, dump_tracer
+
+import sot_talos_balance.talos.base_estimator_conf as baseEstimatorConf
+import sot_talos_balance.talos.control_manager_conf as controlManagerConfig
+import sot_talos_balance.talos.ft_wrist_calibration_conf as forceConf
+import sot_talos_balance.talos.parameter_server_conf as paramServerConfig
+from sot_talos_balance.create_entities_utils import *
 
 robot.timeStep = robot.device.getTimeStep()
 
@@ -29,12 +30,12 @@ leftOC = forceConf.leftLeverArm
 q = [0., 0., 1.018213, 0., 0., 0.]  # Base
 q += [0., 0., -0.411354, 0.859395, -0.448041, -0.001708]  # Left Leg
 q += [0., 0., -0.411354, 0.859395, -0.448041, -0.001708]  # Right Leg
-q += [0.0,  0.006761]  # Chest
+q += [0.0, 0.006761]  # Chest
 q += [0.25847, 0.173046, -0.0002, -0.525366, 0., 0., 0.1, -0.005]  # Left Arm
 # q += [-0.25847, -0.173046, 0.0002, -0.525366, 0., 0., 0.1, -0.005]  # Right Arm
 # q += [-0.25847, -0.0, 0.19, -1.61, 0., 0., 0.1, -0.005]             # Right Arm
 q += [-0.0, -0.01, 0.00, -1.58, -0.01, 0., 0., -0.005]  # Right Arm
-q += [0.,  0.]  # Head
+q += [0., 0.]  # Head
 robot.device.set(q)
 
 # --- CREATE ENTITIES ----------------------------------------------------------
@@ -54,7 +55,6 @@ robot.controller = create_end_effector_admittance_controller(robot, endEffector,
 robot.controlManager = create_ctrl_manager(controlManagerConfig, robot.timeStep)
 robot.controlManager.addCtrlMode('sot_input')
 robot.controlManager.setCtrlMode('all', 'sot_input')
-
 
 # --- HAND TASK ----------------------------------------------------------------
 
@@ -133,7 +133,6 @@ create_topic(robot.publisher, robot.controller, 'w_forceDes', robot=robot, data_
 create_topic(robot.publisher, robot.forceCalibrator, 'leftWristForceOut', robot=robot, data_type='vector')  # calibrated left wrench
 create_topic(robot.publisher, robot.forceCalibrator, 'rightWristForceOut', robot=robot, data_type='vector')  # calibrated right wrench
 
-
 # # --- ROS SUBSCRIBER
 robot.subscriber = RosSubscribe("end_effector_subscriber")
 robot.subscriber.add("vector", "w_force", "/sot/controller/w_force")
@@ -147,7 +146,7 @@ robot.subscriber.add("vector", "rightWristForceOut", "/sot/forceCalibrator/right
 # --- TRACER  ------------------------------------------------------------------
 
 robot.tracer = TracerRealTime("force_tracer")
-robot.tracer.setBufferSize(80*(2**20))
+robot.tracer.setBufferSize(80 * (2**20))
 robot.tracer.open('/tmp', 'dg_', '.dat')
 robot.device.after.addSignal('{0}.triger'.format(robot.tracer.name))
 

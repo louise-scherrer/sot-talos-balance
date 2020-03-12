@@ -37,7 +37,7 @@ namespace dynamicgraph
 #define PROFILE_DCMCONTROLLER_ZMPREF_COMPUTATION    "DcmController: zmpRef computation                      "
 #define PROFILE_DCMCONTROLLER_WRENCHREF_COMPUTATION "DcmController: wrenchRef computation                   "
 
-#define INPUT_SIGNALS     m_KpSIN << m_KiSIN << m_decayFactorSIN << m_omegaSIN << m_massSIN << m_comSIN << m_dcmSIN << m_dcmDesSIN << m_zmpDesSIN
+#define INPUT_SIGNALS     m_KpSIN << m_KiSIN << m_KzSIN << m_decayFactorSIN << m_omegaSIN << m_massSIN << m_comSIN << m_dcmSIN << m_dcmDesSIN << m_zmpDesSIN << m_zmpSIN
 
 #define OUTPUT_SIGNALS m_zmpRefSOUT << m_wrenchRefSOUT
 
@@ -56,6 +56,7 @@ namespace dynamicgraph
                       : Entity(name)
                       , CONSTRUCT_SIGNAL_IN(Kp, dynamicgraph::Vector)
                       , CONSTRUCT_SIGNAL_IN(Ki, dynamicgraph::Vector)
+                      , CONSTRUCT_SIGNAL_IN(Kz, dynamicgraph::Vector)
                       , CONSTRUCT_SIGNAL_IN(decayFactor, double)
                       , CONSTRUCT_SIGNAL_IN(omega, double)
                       , CONSTRUCT_SIGNAL_IN(mass, double)
@@ -63,6 +64,7 @@ namespace dynamicgraph
                       , CONSTRUCT_SIGNAL_IN(dcm, dynamicgraph::Vector)
                       , CONSTRUCT_SIGNAL_IN(dcmDes, dynamicgraph::Vector)
                       , CONSTRUCT_SIGNAL_IN(zmpDes, dynamicgraph::Vector)
+                      , CONSTRUCT_SIGNAL_IN(zmp, dynamicgraph::Vector)
                       , CONSTRUCT_SIGNAL_OUT(zmpRef, dynamicgraph::Vector, INPUT_SIGNALS)
                       , CONSTRUCT_SIGNAL_OUT(wrenchRef, dynamicgraph::Vector, m_zmpRefSOUT << m_comSIN << m_omegaSIN << m_massSIN)
                       // dcomRef is set to depend from comRefSOUT to ensure position is updated before velocity
@@ -140,6 +142,13 @@ namespace dynamicgraph
         const Eigen::Vector3d dcmError = dcmDes - dcm;
 
         Eigen::Vector3d zmpRef = zmpDes - (Eigen::Vector3d::Constant(1.0) + Kp/omega).cwiseProduct(dcmError) - Ki.cwiseProduct(m_dcmIntegralError)/omega;
+        if(m_zmpSIN.isPlugged()) {
+          const Vector & zmp = m_zmpSIN(iter);
+          const Vector & Kz = m_KzSIN(iter);
+          assert(Kz.size()==3  && "Unexpected size of signal Kz");
+          assert(zmp.size()==3 && "Unexpected size of signal zmp");
+          zmpRef += (Kz/omega) * (zmpDes-zmp);
+        }
         zmpRef[2] = 0.0; // maybe needs better way
 
         // update the integrator (AFTER using its value)

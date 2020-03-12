@@ -40,7 +40,7 @@ using namespace dg::command;
 
 #define JOINT_DES_SIGNALS m_q_desSIN
 
-#define INPUT_SIGNALS m_tauSIN << m_K_rSIN << m_K_lSIN //<< m_K_dSIN
+#define INPUT_SIGNALS m_phaseSIN << m_tauSIN << m_K_rSIN << m_K_lSIN //<< m_K_dSIN
 
 #define OUTPUT_SIGNALS m_tau_filtSOUT << m_delta_qSOUT << m_q_cmdSOUT
 
@@ -57,6 +57,7 @@ DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(HipFlexibilityCompensation,
 /* ------------------------------------------------------------------- */
 HipFlexibilityCompensation::HipFlexibilityCompensation(const std::string& name)
   : Entity(name)
+  , CONSTRUCT_SIGNAL_IN(phase, int)
   , CONSTRUCT_SIGNAL_IN(q_des, dynamicgraph::Vector)
   , CONSTRUCT_SIGNAL_IN(tau, dynamicgraph::Vector)
   , CONSTRUCT_SIGNAL_IN(K_l, double)
@@ -124,9 +125,8 @@ void HipFlexibilityCompensation::init(const double &dt, const std::string& robot
   }
 
   m_initSucceeded = true;
-  const Vector& q_des = m_q_desSIN.accessCopy();
   const Vector& tau = m_tauSIN.accessCopy();
-  m_previous_delta_q.resize(q_des.size());
+  m_previous_delta_q.resize(tau.size());
   m_previous_delta_q.setZero();
   m_previous_tau.resize(tau.size());
   m_previous_tau.setZero();
@@ -187,7 +187,7 @@ DEFINE_SIGNAL_OUT_FUNCTION(tau_filt, dynamicgraph::Vector) {
     // Low pass filter  
     s = lowPassFilter(m_torqueLowPassFilterFrequency, tau, m_previous_tau);     
   }
-  m_previous_tau = tau;  
+  m_previous_tau = s;
   getProfiler().stop(PROFILE_HIPFLEXIBILITYCOMPENSATION_TAUFILT_COMPUTATION);
 
   return s;
@@ -202,24 +202,20 @@ DEFINE_SIGNAL_OUT_FUNCTION(delta_q, dynamicgraph::Vector) {
   getProfiler().start(PROFILE_HIPFLEXIBILITYCOMPENSATION_DELTAQ_COMPUTATION);
 
   const Vector &tau = m_tau_filtSOUT(iter);
-  double K_r = m_K_rSIN(iter);
-  double K_l = m_K_lSIN(iter);
-  
-  if(s.size() != tau.size())
-    s.setZero(tau.size());
+  const int phase = m_phaseSIN.isPlugged() ? m_phaseSIN(iter) : 1; // always active if unplugged - actual phase unrelevant
+  const double K_r = m_K_rSIN(iter);
+  const double K_l = m_K_lSIN(iter);
 
-  for (unsigned int i=0; i<tau.size(); i++){
-    if (i==1){
-      s[i] = tau[i]/K_l; // torque/flexibility of left hip (roll) 
-    }
-    else if (i==7){
-      s[i] = tau[i]/K_r; // torque/flexibility of right hip (roll) 
-    }
-    else {
-      s[i] = 0.0;  // no flexibility for other joints
-    }
+  if(s.size() != tau.size())
+    s.resize(tau.size());
+
+  s.setZero();
+
+  if(phase != 0) {
+    s[1] = tau[1]/K_l; // torque/flexibility of left hip (roll)
+    s[7] = tau[7]/K_r; // torque/flexibility of right hip (roll)
   }
-  
+
   // Angular Saturation
   // left hip
   if (s[1] > m_delta_q_saturation){
@@ -251,18 +247,21 @@ DEFINE_SIGNAL_OUT_FUNCTION(q_cmd, dynamicgraph::Vector) {
   const Vector &q_des = m_q_desSIN(iter);
   const Vector &delta_q = m_delta_qSOUT(iter);
 
+  assert( (q_des.size()==delta_q.size()) || (q_des.size()==delta_q.size()+6) );
+
   if(s.size() != q_des.size())
     s.resize(q_des.size());
 
-  Vector limitedSignal;
-  limitedSignal.resize(delta_q.size());
-  rateLimiter(delta_q, m_previous_delta_q, limitedSignal);
-  m_previous_delta_q = limitedSignal;
+  if(m_limitedSignal.size() != delta_q.size())
+    m_limitedSignal.resize(delta_q.size());
+  rateLimiter(delta_q, m_previous_delta_q, m_limitedSignal);
+  m_previous_delta_q = m_limitedSignal;
   
   if (iter < 5){
     s = q_des;
-  } else {    
-    s = q_des + limitedSignal;
+  } else {
+    s = q_des;
+    s.tail(m_limitedSignal.size()) += m_limitedSignal;
   }
 
   getProfiler().stop(PROFILE_HIPFLEXIBILITYCOMPENSATION_QCMD_COMPUTATION);

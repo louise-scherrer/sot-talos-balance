@@ -1,9 +1,13 @@
-from sot_talos_balance.create_entities_utils import *
-import sot_talos_balance.talos.parameter_server_conf as param_server_conf
-import sot_talos_balance.talos.base_estimator_conf as base_estimator_conf
 import numpy as np
 import pinocchio as pin
 from numpy.testing import assert_almost_equal as assertApprox
+from rospkg import RosPack
+
+import sot_talos_balance.talos.base_estimator_conf as base_estimator_conf
+import sot_talos_balance.talos.parameter_server_conf as param_server_conf
+from sot_talos_balance.create_entities_utils import (DcmEstimator, SimpleReferenceFrame, StateTransformation,
+                                                     TalosBaseEstimator, create_parameter_server, plug)
+from sot_talos_balance.euler_to_quat import EulerToQuat
 
 # --- General ---
 print("--- General ---")
@@ -11,28 +15,60 @@ print("--- General ---")
 dt = 0.001
 robot_name = 'robot'
 
-halfSitting = [0.0, 0.0,  1.018213,  0.00  ,  0.0, 0.0, 1.0,                         #Free flyer
-               0.0,  0.0, -0.411354,  0.859395, -0.448041, -0.001708, #Left Leg
-               0.0,  0.0, -0.411354,  0.859395, -0.448041, -0.001708, #Right Leg
-               0.0 ,  0.006761,                                                 #Chest
-               0.25847 ,  0.173046, -0.0002, -0.525366, 0.0, -0.0,  0.1, -0.005,        #Left Arm
-              -0.25847 , -0.173046, 0.0002  , -0.525366, 0.0,  0.0,  0.1,-0.005,      #Right Arm
-               0.,  0.                                                          #Head
+halfSitting = [
+    0.0,
+    0.0,
+    1.018213,
+    0.00,
+    0.0,
+    0.0,
+    1.0,  # Free flyer
+    0.0,
+    0.0,
+    -0.411354,
+    0.859395,
+    -0.448041,
+    -0.001708,  # Left Leg
+    0.0,
+    0.0,
+    -0.411354,
+    0.859395,
+    -0.448041,
+    -0.001708,  # Right Leg
+    0.0,
+    0.006761,  # Chest
+    0.25847,
+    0.173046,
+    -0.0002,
+    -0.525366,
+    0.0,
+    -0.0,
+    0.1,
+    -0.005,  # Left Arm
+    -0.25847,
+    -0.173046,
+    0.0002,
+    -0.525366,
+    0.0,
+    0.0,
+    0.1,
+    -0.005,  # Right Arm
+    0.,
+    0.  # Head
 ]
 
 q = np.matrix(halfSitting).T
 print("q:")
 print(q.flatten().tolist()[0])
 
-from rospkg import RosPack
 rospack = RosPack()
-urdfPath = rospack.get_path('talos_data')+"/urdf/talos_reduced.urdf"
-urdfDir = [rospack.get_path('talos_data')+"/../"]
+urdfPath = rospack.get_path('talos_data') + "/urdf/talos_reduced.urdf"
+urdfDir = [rospack.get_path('talos_data') + "/../"]
 
 model = pin.buildModelFromUrdf(urdfPath, pin.JointModelFreeFlyer())
 data = model.createData()
-com = pin.centerOfMass(model,data,q)
-pin.updateFramePlacements(model,data)
+com = pin.centerOfMass(model, data, q)
+pin.updateFramePlacements(model, data)
 m = data.mass[0]
 
 print("com:")
@@ -40,29 +76,29 @@ print(com.flatten().tolist()[0])
 
 leftName = param_server_conf.footFrameNames['Left']
 leftId = model.getFrameId(leftName)
-leftPos  = data.oMf[leftId]
-print( "%s: %d" % (leftName,leftId) )
+leftPos = data.oMf[leftId]
+print("%s: %d" % (leftName, leftId))
 print(leftPos)
 
 rightName = param_server_conf.footFrameNames['Right']
 rightId = model.getFrameId(rightName)
 rightPos = data.oMf[rightId]
-print( "%s: %d" % (rightName,rightId) )
+print("%s: %d" % (rightName, rightId))
 print(rightPos)
 
 g = 9.81
-fz = m*g/2.0
-forceLeft  = [0.0, 0.0, fz]
+fz = m * g / 2.0
+forceLeft = [0.0, 0.0, fz]
 forceRight = [0.0, 0.0, fz]
 lever = float(com[0] - rightPos.translation[0])
-tauy = -fz*lever
-wrenchLeft  = forceLeft  + [0.0, tauy, 0.0]
+tauy = -fz * lever
+wrenchLeft = forceLeft + [0.0, tauy, 0.0]
 wrenchRight = forceRight + [0.0, tauy, 0.0]
 
 # --- Parameter server ---
 print("--- Parameter server ---")
 
-param_server = create_parameter_server(param_server_conf,dt)
+param_server = create_parameter_server(param_server_conf, dt)
 
 # --- Base estimator ---
 print("--- Base estimator ---")
@@ -74,17 +110,17 @@ base_estimator.init(dt, robot_name)
 base_estimator.joint_positions.value = halfSitting[7:]
 base_estimator.forceLLEG.value = wrenchLeft
 base_estimator.forceRLEG.value = wrenchRight
-base_estimator.dforceLLEG.value = [0.0]*6
-base_estimator.dforceRLEG.value = [0.0]*6
-base_estimator.joint_velocities.value = [0.0]*(model.nv-6)
-base_estimator.imu_quaternion.value = [0.0]*3 + [1.0]
-base_estimator.gyroscope.value = [0.0]*3
-base_estimator.accelerometer.value = [0.0]*3
+base_estimator.dforceLLEG.value = [0.0] * 6
+base_estimator.dforceRLEG.value = [0.0] * 6
+base_estimator.joint_velocities.value = [0.0] * (model.nv - 6)
+base_estimator.imu_quaternion.value = [0.0] * 3 + [1.0]
+base_estimator.gyroscope.value = [0.0] * 3
+base_estimator.accelerometer.value = [0.0] * 3
 
-base_estimator.K_fb_feet_poses.value =               conf.K_fb_feet_poses
-base_estimator.w_lf_in.value =                       conf.w_lf_in
-base_estimator.w_rf_in.value =                       conf.w_rf_in
-#base_estimator.set_imu_weight(conf.w_imu) # TEMP!
+base_estimator.K_fb_feet_poses.value = conf.K_fb_feet_poses
+base_estimator.w_lf_in.value = conf.w_lf_in
+base_estimator.w_rf_in.value = conf.w_rf_in
+# base_estimator.set_imu_weight(conf.w_imu) # TEMP!
 base_estimator.set_imu_weight(0.)
 base_estimator.set_stiffness_right_foot(conf.K)
 base_estimator.set_stiffness_left_foot(conf.K)
@@ -112,9 +148,9 @@ rf.footRight.value = rightPos.homogeneous.tolist()
 # --- State transformation
 stf = StateTransformation("stf")
 stf.init()
-plug(rf.referenceFrame,stf.referenceFrame)
-plug(base_estimator.q,stf.q_in)
-plug(base_estimator.v,stf.v_in)
+plug(rf.referenceFrame, stf.referenceFrame)
+plug(base_estimator.q, stf.q_in)
+plug(base_estimator.v, stf.v_in)
 
 stf.q.recompute(0)
 print(stf.q.value)
@@ -128,23 +164,23 @@ print(len(stf.v.value))
 print("--- Conversion ---")
 
 e2q = EulerToQuat('e2q')
-plug(stf.q,e2q.euler)
+plug(stf.q, e2q.euler)
 e2q.quaternion.recompute(0)
 print(e2q.quaternion.value)
 print(len(e2q.quaternion.value))
 q_est = np.matrix(e2q.quaternion.value).T
 
 # temp
-if q_est[6]<0 and q[6]>0:
+if q_est[6] < 0 and q[6] > 0:
     print("Warning: quaternions have different signs")
-    q_est[3:7] = - q_est[3:7]
+    q_est[3:7] = -q_est[3:7]
 
 print(q_est.T)
-assertApprox(q,q_est,3)
+assertApprox(q, q_est, 3)
 
 # --- Raw q difference ---
 print("--- Raw q difference ---")
-q_diff = q_est-q
+q_diff = q_est - q
 print(q_diff.flatten().tolist()[0])
 
 # --- DCM estimator ---
@@ -166,4 +202,4 @@ print("--- CoM difference ---")
 com_rawdiff = np.matrix(dcm_estimator.c.value).T - com
 print(com_rawdiff.flatten().tolist()[0])
 
-assertApprox(np.matrix(dcm_estimator.c.value).T,com,3)
+assertApprox(np.matrix(dcm_estimator.c.value).T, com, 3)

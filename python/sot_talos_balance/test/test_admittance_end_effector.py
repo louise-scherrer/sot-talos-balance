@@ -1,17 +1,20 @@
-from sot_talos_balance.utils.run_test_utils import *
 from time import sleep
 
-import matplotlib.pyplot as plt
-import numpy as np
+from sot_talos_balance.utils.run_test_utils import run_ft_wrist_calibration, run_test, runCommandClient
+
+try:
+    # Python 2
+    input = raw_input  # noqa
+except NameError:
+    pass
 
 run_test('appli_admittance_end_effector.py')
 
 run_ft_wrist_calibration('robot.forceCalibrator')
 
-raw_input("Wait before running the test")
+input("Wait before running the test")
 
 sleep(10.0)
-
 
 # --- DISPLAY
 # force_data = np.loadtxt('/tmp/dg_' + evalCommandClient('robot.controller.name') + '-force.dat')
@@ -33,6 +36,6 @@ sleep(10.0)
 # plt.title('w_force')
 # plt.legend(['w_force x', 'w_force y', 'w_force z'])
 
-raw_input("Wait before leaving the simulation")
+input("Wait before leaving the simulation")
 
 runCommandClient('dump_tracer(robot.tracer)')
