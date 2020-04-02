@@ -1,4 +1,4 @@
-'''Test CoM admittance control as described in paper, with pre-loaded movements'''
+'''Test CoM admittance control as described in paper, with a Reference Velocity provided'''
 
 ## File adapted from appli_dcmZmpControl_file.py and appli_dcmZmpControl_online_ISA.py written by Isabelle Maroger
 ## ALL THINGS ADDED OR CHANGED ARE COMMENTED IN CAPITAL LETTERS
@@ -10,6 +10,8 @@ from sys import argv
 from sot_talos_balance.utils.run_test_utils import *
 from time import sleep
 ## END DIFFERENCE
+
+from dynamic_graph import * # for entity graph display
 
 ## NEXT FEW LINES IRRELEVENT AS WISH TO GO ONLINE --> COMMENTED
 #try:
@@ -43,6 +45,8 @@ if c:
     print('Executing the trajectory')
 #    runCommandClient('robot.triggerTrajGen.sin.value = 1') # NAMED DIFFERENTLY IN ISA'S SCRIPT, SEE BELOW
     runCommandClient('robot.triggerPG.sin.value = 1')
+    writeGraph('/local/lscherrer/lscherrer/Scripts/Results/my_dyn_graph.dot')
+
 else:
     print('Not executing the trajectory')
 

@@ -12,7 +12,7 @@ from math import sqrt
 import numpy as np
 from dynamic_graph import plug
 from dynamic_graph.sot.core import SOT, Derivator_of_Vector, FeaturePosture, MatrixHomoToPoseQuaternion, Task
-from dynamic_graph.sot.core.matrix_util import matrixToTuple
+from dynamic_graph.sot.core.matrix_util import matrixToTuple, RPYToMatrix # deuxieme pour essai ajout waistattitudeabsolute
 from dynamic_graph.sot.core.meta_tasks_kine import MetaTaskKine6d, MetaTaskKineCom, gotoNd
 from dynamic_graph.sot.dynamics_pinocchio import DynamicPinocchio # NOTE: IS IN /integration_tests/robotpkg-test-rc/install/lib/python 2.7/site-packages/dynamic_graph/sot/dynamics_pinocchio
 from dynamic_graph.tracer_real_time import TracerRealTime
@@ -24,6 +24,10 @@ import sot_talos_balance.talos.ft_calibration_conf as ft_conf
 import sot_talos_balance.talos.parameter_server_conf as param_server_conf
 from sot_talos_balance.create_entities_utils import *
 
+# Ajout 24.03.20, pour mise a jour des parametres waist, mauvaise fonction
+#from sot_talos_balance.utils.plot_utils import dump_sot_sig
+# fin ajout
+
 # ADDED FROM APPLI ONLINE ISABELLE #
 #from dynamic_graph.sot.pattern_generator import PatternGenerator #ERROR: "DOESN't EXIST", indeed ...
 # TRYING IMPORTING THE PACKAGE FROM DEVEL-SRC
@@ -34,7 +38,10 @@ from sot_talos_balance.create_entities_utils import *
 
 #sys.path.append("/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages")#either: : needs an __init__.py, in pattern_generator
 #sys.path.append("/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages/dynamic_graph")#either
-sys.path.append("/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages/dynamic_graph/sot/")
+#sys.path.append("/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages/dynamic_graph/sot/")
+
+# LOCAL VERSION
+sys.path.append("/local/lscherrer/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages/dynamic_graph/sot/")
 from pattern_generator import PatternGenerator # this works, not very pretty but works for now
 # END ADDED
 
@@ -65,7 +72,7 @@ robot.dynamic.WT.recompute(0)
 
 # -------------------------- DESIRED TRAJECTORY --------------------------
 
-rospack = RosPack() ## DO I NEED THAT ?!!
+rospack = RosPack() ## DO I NEED THAT ?
 
 ## COMMENTING EVERYTHING RELATED TO READING A PRE-EXISTING FILE
 
@@ -204,7 +211,14 @@ robot.pg.parseCmd(':deleteallobstacles')
 robot.pg.parseCmd(':feedBackControl false')
 robot.pg.parseCmd(':useDynamicFilter true')
 
-robot.pg.velocitydes.value=(0.2,0.2,0.0) # DEFAULT VALUE (0.1,0.0,0.0)
+robot.pg.velocitydes.value=(0.1,0.0,0.0) # DEFAULT VALUE (0.1,0.0,0.0)
+
+# Ajout 24.03.20 -> pas la bonne fonction
+#dump_sot_sig(robot, robot.pg, 'waistattitudematrix', dt) # quel duration ? essai avec 0.1, 1., dt, 0.005
+#
+# 27.03.20 la fonction
+#robot.device.after.addSignal('robot.pg.waistattitudeabsolute')
+
 
 #robot.pg.displaySignals()
 
@@ -221,7 +235,24 @@ wp.init()
 # #wp.displaySignals()
 wp.omega.value = omega
 
-plug(robot.pg.waistattitudematrix, wp.waist)
+# 31.03.20 essai sur le waist
+#robot.waistattitudeabTOmatrixHomo = RPYToMatrix('waistattitudeabTOmatrixHomo') # marche pas, je peux pas rajouter ca dans robot
+#waistattitudeabTOmatrixHomo = RPYToMatrix('waistattitudeabTOmatrixHomo') # pas non plus
+
+#waistattitudeabTOmatrixHomo = RPYToMatrix('waistattitudeabTOmatrixHomo')
+#plug(robot.pg.waistattitudeabsolute, waistattitudeabTOmatrixHomo.sin)
+#plug(waistattitudeabTOmatrixHomo.sout, wp.waist)
+
+# ca tout seul marche pas
+#plug(RPYToMatrix(robot.pg.waistattitudeabsolute), wp.waist)
+
+robot.waistToMatrix = RPYToMatrix('w2m')
+#plug(robot.waistMix.sout, robot.waistToMatrix.sin)
+
+
+#plug(robot.pg.waistattitudematrix, wp.waist)
+# fin
+
 plug(robot.pg.leftfootref, wp.footLeft)
 plug(robot.pg.rightfootref, wp.footRight)
 plug(robot.pg.comref, wp.com)
@@ -430,10 +461,16 @@ robot.taskCom.task.setWithDerivative(True)
 robot.taskCom.feature.selec.value = '011'
 
 # --- Waist
+
+# Ajout 24.03.20, se met a jour tous les combien ??? A chaque cycle. Essai de le mettre plus haut, au niveau pg
+#dump_sot_sig(robot, robot.pg, 'waistattitudematrix', 0.005) # quel duration ? essai avec 0.1, 1., dt, 0.005
+#
+
 robot.keepWaist = MetaTaskKine6d('keepWaist', robot.dynamic, 'WT', robot.OperationalPointsMap['waist'])
 robot.keepWaist.feature.frame('desired')
 robot.keepWaist.gain.setConstant(300)
-plug(robot.wp.waistDes, robot.keepWaist.featureDes.position)
+plug(robot.wp.waist, robot.keepWaist.featureDes.position)
+#plug(robot.wp.waistDes, robot.keepWaist.featureDes.position) #de base
 robot.keepWaist.feature.selec.value = '111000'
 locals()['keepWaist'] = robot.keepWaist
 
@@ -518,7 +555,20 @@ robot.publisher = create_rospublish(robot, 'robot_publisher')
 ## ADDED 
 create_topic(robot.publisher, robot.pg, 'comref', robot = robot, data_type='vector')                      # desired CoM
 create_topic(robot.publisher, robot.pg, 'dcomref', robot = robot, data_type='vector')
-# END ADDED
+#create_topic(robot.publisher, robot.wp, 'waistDes', robot = robot, data_type='matrixHomo')
+create_topic(robot.publisher, robot.wp, 'waist', robot = robot, data_type='matrixHomo')
+create_topic(robot.publisher, robot.keepWaist.featureDes, 'position', robot = robot, data_type='matrixHomo')
+create_topic(robot.publisher, robot.dynamic, 'WT', robot = robot, data_type='matrixHomo')
+create_topic(robot.publisher, robot.pg, 'waistattitudematrix', robot = robot, data_type='matrixHomo') ## que font ces lignes exactement ??
+#create_topic(robot.publisher, robot.pg, 'waistattitudeabsolute', robot = robot, data_type='vectorRPY')
+
+#create_topic(robot.publisher, robot.pg, 'leftfootref', robot = robot, data_type='vector')
+#plug(robot.pg.leftfootref, wp.footLeft)
+#plug(robot.pg.rightfootref, wp.footRight)
+#plug(robot.pg.comref, wp.com)
+#plug(robot.pg.dcomref, wp.vcom)
+#plug(robot.pg.ddcomref, wp.acom)
+## END ADDED
 
 #create_topic(robot.publisher, robot.device, 'state', robot=robot, data_type='vector')
 #create_topic(robot.publisher, robot.base_estimator, 'q', robot=robot, data_type='vector')
@@ -570,7 +620,20 @@ robot.tracer.setBufferSize(80 * (2**20))
 robot.tracer.open('/home/lscherrer/devel-src/sot_bionic_ws/src/sot-talos-balance/python/sot_talos_balance/test/test_results', 'dg_', '.dat')
 #END REPLACED
 
+
+# 24.03.20 QUE FAIT CE TRUC  ??
+# Info trouvee sur internet: 'Make sure signals are recomputed even if not used in the control graph'
 robot.device.after.addSignal('{0}.triger'.format(robot.tracer.name))
+
+# 30.03
+#robot.device.after.addSignal('robot.pg.waist...') renvoie 'entity not found'
+robot.device.after.addSignal('pg.waistattitudeabsolute')
+
+
+
+
+addTrace(robot.tracer, robot.pg, 'waistattitudeabsolute')
+# fin
 
 addTrace(robot.tracer, robot.wp, 'comDes')  # desired CoM
 
