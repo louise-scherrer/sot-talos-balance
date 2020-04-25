@@ -23,124 +23,107 @@
 #include <dynamic-graph/all-commands.h>
 #include <sot/core/stop-watch.hh>
 
-namespace dynamicgraph
-{
-  namespace sot
-  {
-    namespace talos_balance
-    {
-      namespace dg = ::dynamicgraph;
-      using namespace dg;
-      using namespace dg::command;
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
+namespace dg = ::dynamicgraph;
+using namespace dg;
+using namespace dg::command;
 
-//Size to be aligned                                         "-------------------------------------------------------"
+// Size to be aligned                                         "-------------------------------------------------------"
 #define PROFILE_SIMPLEREFERENCEFRAME_DCM_COMPUTATION "SimpleReferenceFrame: dcm computation          "
 
-#define INPUT_SIGNALS     m_footLeftSIN << m_footRightSIN << m_resetSIN
+#define INPUT_SIGNALS m_footLeftSIN << m_footRightSIN << m_resetSIN
 
 #define OUTPUT_SIGNALS m_referenceFrameSOUT
 
-      /// Define EntityClassName here rather than in the header file
-      /// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
-      typedef SimpleReferenceFrame EntityClassName;
+/// Define EntityClassName here rather than in the header file
+/// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
+typedef SimpleReferenceFrame EntityClassName;
 
-      /* --- DG FACTORY ---------------------------------------------------- */
-      DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(SimpleReferenceFrame,
-                                         "SimpleReferenceFrame");
+/* --- DG FACTORY ---------------------------------------------------- */
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(SimpleReferenceFrame, "SimpleReferenceFrame");
 
-      /* ------------------------------------------------------------------- */
-      /* --- CONSTRUCTION -------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
-      SimpleReferenceFrame::SimpleReferenceFrame(const std::string& name)
-                      : Entity(name)
-                      , CONSTRUCT_SIGNAL_IN(footLeft,  MatrixHomogeneous)
-                      , CONSTRUCT_SIGNAL_IN(footRight, MatrixHomogeneous)
-                      , CONSTRUCT_SIGNAL_IN(reset, bool)
-                      , CONSTRUCT_SIGNAL_OUT(referenceFrame, MatrixHomogeneous, m_footLeftSIN << m_footRightSIN << m_resetSIN)
-                      , m_first(true)
-                      , m_initSucceeded(false)
-      {
-        Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
-        m_referenceFrame.setIdentity();
+/* ------------------------------------------------------------------- */
+/* --- CONSTRUCTION -------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+SimpleReferenceFrame::SimpleReferenceFrame(const std::string& name)
+    : Entity(name),
+      CONSTRUCT_SIGNAL_IN(footLeft, MatrixHomogeneous),
+      CONSTRUCT_SIGNAL_IN(footRight, MatrixHomogeneous),
+      CONSTRUCT_SIGNAL_IN(reset, bool),
+      CONSTRUCT_SIGNAL_OUT(referenceFrame, MatrixHomogeneous, m_footLeftSIN << m_footRightSIN << m_resetSIN),
+      m_first(true),
+      m_initSucceeded(false) {
+  Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
+  m_referenceFrame.setIdentity();
 
-        /* Commands. */
-        addCommand("init", makeCommandVoid1(*this, &SimpleReferenceFrame::init, docCommandVoid1("Initialize the entity.","Robot name")));
-      }
+  /* Commands. */
+  addCommand("init", makeCommandVoid1(*this, &SimpleReferenceFrame::init,
+                                      docCommandVoid1("Initialize the entity.", "Robot name")));
+}
 
-      void SimpleReferenceFrame::init(const std::string& robotName)
-      {
-        try
-        {
-          /* Retrieve m_robot_util informations */
-          std::string localName(robotName);
-          if (isNameInRobotUtil(localName))
-          {
-            m_robot_util = getRobotUtil(localName);
-          }
-          else
-          {
-            SEND_ERROR_STREAM_MSG("You should have a robotUtil pointer initialized before");
-            return;
-          }
-        }
-        catch (const std::exception& e)
-        {
-          SEND_ERROR_STREAM_MSG("Init failed: Could load URDF :" + m_robot_util->m_urdf_filename);
-          return;
-        }
+void SimpleReferenceFrame::init(const std::string& robotName) {
+  try {
+    /* Retrieve m_robot_util informations */
+    std::string localName(robotName);
+    if (isNameInRobotUtil(localName)) {
+      m_robot_util = getRobotUtil(localName);
+    } else {
+      SEND_ERROR_STREAM_MSG("You should have a robotUtil pointer initialized before");
+      return;
+    }
+  } catch (const std::exception& e) {
+    SEND_ERROR_STREAM_MSG("Init failed: Could load URDF :" + m_robot_util->m_urdf_filename);
+    return;
+  }
 
-        m_rightFootSoleXYZ = m_robot_util->m_foot_util.m_Right_Foot_Sole_XYZ;
+  m_rightFootSoleXYZ = m_robot_util->m_foot_util.m_Right_Foot_Sole_XYZ;
 
-        m_initSucceeded = true;
-      }
+  m_initSucceeded = true;
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- SIGNALS ------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- SIGNALS ------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      DEFINE_SIGNAL_OUT_FUNCTION(referenceFrame, MatrixHomogeneous)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal referenceFrame before initialization!");
-          return s;
-        }
+DEFINE_SIGNAL_OUT_FUNCTION(referenceFrame, MatrixHomogeneous) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal referenceFrame before initialization!");
+    return s;
+  }
 
-        const MatrixHomogeneous & footLeft = m_footLeftSIN(iter);
-        const MatrixHomogeneous & footRight = m_footRightSIN(iter);
-        const bool reset = m_resetSIN.isPlugged() ? m_resetSIN(iter) : false;
+  const MatrixHomogeneous& footLeft = m_footLeftSIN(iter);
+  const MatrixHomogeneous& footRight = m_footRightSIN(iter);
+  const bool reset = m_resetSIN.isPlugged() ? m_resetSIN(iter) : false;
 
-        if(reset||m_first)
-        {
-          Eigen::Vector3d centerTranslation = ( footLeft.translation() + footRight.translation() )/2 + m_rightFootSoleXYZ;
-          centerTranslation[2] = 0;
+  if (reset || m_first) {
+    Eigen::Vector3d centerTranslation = (footLeft.translation() + footRight.translation()) / 2 + m_rightFootSoleXYZ;
+    centerTranslation[2] = 0;
 
-          m_referenceFrame.linear() = footRight.linear();
-          m_referenceFrame.translation() = centerTranslation;
-          m_first = false;
-        }
+    m_referenceFrame.linear() = footRight.linear();
+    m_referenceFrame.translation() = centerTranslation;
+    m_first = false;
+  }
 
-        s = m_referenceFrame;
+  s = m_referenceFrame;
 
-        return s;
-      }
+  return s;
+}
 
-      /* --- COMMANDS ---------------------------------------------------------- */
+/* --- COMMANDS ---------------------------------------------------------- */
 
-      /* ------------------------------------------------------------------- */
-      /* --- ENTITY -------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- ENTITY -------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      void SimpleReferenceFrame::display(std::ostream& os) const
-      {
-        os << "SimpleReferenceFrame " << getName();
-        try
-        {
-          getProfiler().report_all(3, os);
-        }
-        catch (ExceptionSignal e) {}
-      }
-    } // namespace talos_balance
-  } // namespace sot
-} // namespace dynamicgraph
-
+void SimpleReferenceFrame::display(std::ostream& os) const {
+  os << "SimpleReferenceFrame " << getName();
+  try {
+    getProfiler().report_all(3, os);
+  } catch (ExceptionSignal e) {
+  }
+}
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

@@ -20,68 +20,58 @@
 #include <dynamic-graph/factory.h>
 #include <dynamic-graph/all-commands.h>
 
-namespace dynamicgraph
-{
-  namespace sot
-  {
-    namespace talos_balance
-    {
-      namespace dg = ::dynamicgraph;
-      using namespace dg;
-      using namespace dg::command;
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
+namespace dg = ::dynamicgraph;
+using namespace dg;
+using namespace dg::command;
 
-#define INPUT_SIGNALS     m_sinSIN
+#define INPUT_SIGNALS m_sinSIN
 
 #define OUTPUT_SIGNALS m_soutSOUT
 
-      /// Define EntityClassName here rather than in the header file
-      /// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
-      typedef RoundDoubleToInt EntityClassName;
+/// Define EntityClassName here rather than in the header file
+/// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
+typedef RoundDoubleToInt EntityClassName;
 
-      /* --- DG FACTORY ---------------------------------------------------- */
-      DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(RoundDoubleToInt,
-                                         "RoundDoubleToInt");
+/* --- DG FACTORY ---------------------------------------------------- */
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(RoundDoubleToInt, "RoundDoubleToInt");
 
-      /* ------------------------------------------------------------------- */
-      /* --- CONSTRUCTION -------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
-      RoundDoubleToInt::RoundDoubleToInt(const std::string& name)
-                      : Entity(name)
-                      , CONSTRUCT_SIGNAL_IN(sin,  double)
-                      , CONSTRUCT_SIGNAL_OUT(sout, int, INPUT_SIGNALS)
-      {
-        Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
+/* ------------------------------------------------------------------- */
+/* --- CONSTRUCTION -------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+RoundDoubleToInt::RoundDoubleToInt(const std::string& name)
+    : Entity(name), CONSTRUCT_SIGNAL_IN(sin, double), CONSTRUCT_SIGNAL_OUT(sout, int, INPUT_SIGNALS) {
+  Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
 
-        /* Commands. */
-        addCommand("init", makeCommandVoid0(*this, &RoundDoubleToInt::init, docCommandVoid0("Initialize the entity.")));
-      }
+  /* Commands. */
+  addCommand("init", makeCommandVoid0(*this, &RoundDoubleToInt::init, docCommandVoid0("Initialize the entity.")));
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- SIGNALS ------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- SIGNALS ------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      DEFINE_SIGNAL_OUT_FUNCTION(sout,int)
-      {
-        double in = m_sinSIN(iter);
-        s = int(round(in));
-        return s;
-      }
+DEFINE_SIGNAL_OUT_FUNCTION(sout, int) {
+  double in = m_sinSIN(iter);
+  s = int(round(in));
+  return s;
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- ENTITY -------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- ENTITY -------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      void RoundDoubleToInt::display(std::ostream& os) const
-      {
-        os << "RoundDoubleToInt " << getName();
-//        try
-//        {
-//          getProfiler().report_all(3, os);
-//        }
-//        catch (ExceptionSignal e) {}
-      }
+void RoundDoubleToInt::display(std::ostream& os) const {
+  os << "RoundDoubleToInt " << getName();
+  //        try
+  //        {
+  //          getProfiler().report_all(3, os);
+  //        }
+  //        catch (ExceptionSignal e) {}
+}
 
-    } // namespace talos_balance
-  } // namespace sot
-} // namespace dynamicgraph
-
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

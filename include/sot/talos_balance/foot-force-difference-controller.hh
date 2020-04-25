@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (foot_force_difference_controller_EXPORTS)
-#    define FOOT_FORCE_DIFFERENCE_CONTROLLER_EXPORT __declspec(dllexport)
-#  else
-#    define FOOT_FORCE_DIFFERENCE_CONTROLLER_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(foot_force_difference_controller_EXPORTS)
+#define FOOT_FORCE_DIFFERENCE_CONTROLLER_EXPORT __declspec(dllexport)
 #else
-#  define FOOT_FORCE_DIFFERENCE_CONTROLLER_EXPORT
+#define FOOT_FORCE_DIFFERENCE_CONTROLLER_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define FOOT_FORCE_DIFFERENCE_CONTROLLER_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -44,74 +43,70 @@
 #include <dynamic-graph/linear-algebra.h>
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class FOOT_FORCE_DIFFERENCE_CONTROLLER_EXPORT FootForceDifferenceController
-          : public ::dynamicgraph::Entity
-      {
-      DYNAMIC_GRAPH_ENTITY_DECL();
+class FOOT_FORCE_DIFFERENCE_CONTROLLER_EXPORT FootForceDifferenceController : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        FootForceDifferenceController( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  FootForceDifferenceController(const std::string& name);
 
-        void init();
+  void init();
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(phase, int);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(phase, int);
 
-        DECLARE_SIGNAL_IN(gainSwing, double);
-        DECLARE_SIGNAL_IN(gainStance, double);
-        DECLARE_SIGNAL_IN(gainDouble, double);
+  DECLARE_SIGNAL_IN(gainSwing, double);
+  DECLARE_SIGNAL_IN(gainStance, double);
+  DECLARE_SIGNAL_IN(gainDouble, double);
 
-        DECLARE_SIGNAL_IN(dfzAdmittance, double);
-        DECLARE_SIGNAL_IN(vdcFrequency, double);
-        DECLARE_SIGNAL_IN(vdcDamping, double);
+  DECLARE_SIGNAL_IN(dfzAdmittance, double);
+  DECLARE_SIGNAL_IN(vdcFrequency, double);
+  DECLARE_SIGNAL_IN(vdcDamping, double);
 
-        DECLARE_SIGNAL_IN(swingAdmittance, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(swingAdmittance, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_IN(wrenchRightDes, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(wrenchLeftDes, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(wrenchRight, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(wrenchLeft, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(wrenchRightDes, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(wrenchLeftDes, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(wrenchRight, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(wrenchLeft, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_IN(posRightDes, MatrixHomogeneous);
-        DECLARE_SIGNAL_IN(posLeftDes, MatrixHomogeneous);
-        DECLARE_SIGNAL_IN(posRight, MatrixHomogeneous);
-        DECLARE_SIGNAL_IN(posLeft, MatrixHomogeneous);
+  DECLARE_SIGNAL_IN(posRightDes, MatrixHomogeneous);
+  DECLARE_SIGNAL_IN(posLeftDes, MatrixHomogeneous);
+  DECLARE_SIGNAL_IN(posRight, MatrixHomogeneous);
+  DECLARE_SIGNAL_IN(posLeft, MatrixHomogeneous);
 
-        DECLARE_SIGNAL_INNER(dz_ctrl, double);
-        DECLARE_SIGNAL_INNER(dz_pos, double);
+  DECLARE_SIGNAL_INNER(dz_ctrl, double);
+  DECLARE_SIGNAL_INNER(dz_pos, double);
 
-        DECLARE_SIGNAL_OUT(vRight, dynamicgraph::Vector);
-        DECLARE_SIGNAL_OUT(vLeft, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(vRight, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(vLeft, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(gainRight, double);
-        DECLARE_SIGNAL_OUT(gainLeft, double);
+  DECLARE_SIGNAL_OUT(gainRight, double);
+  DECLARE_SIGNAL_OUT(gainLeft, double);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      protected:
-        Eigen::Vector3d calcSwingAdmittance(const dynamicgraph::Vector & wrench, const dynamicgraph::Vector & swingAdmittance);
+ protected:
+  Eigen::Vector3d calcSwingAdmittance(const dynamicgraph::Vector& wrench, const dynamicgraph::Vector& swingAdmittance);
 
-        double m_eps;
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
+  double m_eps;
+  bool m_initSucceeded;  /// true if the entity has been successfully initialized
 
-      }; // class FootForceDifferenceController
+};  // class FootForceDifferenceController
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_foot_force_difference_controller_H__
+#endif  // #ifndef __sot_talos_balance_foot_force_difference_controller_H__

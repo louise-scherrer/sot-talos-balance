@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (position_controller_EXPORTS)
-#    define EXAMPLE_EXPORT __declspec(dllexport)
-#  else
-#    define EXAMPLE_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(position_controller_EXPORTS)
+#define EXAMPLE_EXPORT __declspec(dllexport)
 #else
-#  define EXAMPLE_EXPORT
+#define EXAMPLE_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define EXAMPLE_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -43,47 +42,43 @@
 #include <sot/core/robot-utils.hh>
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class EXAMPLE_EXPORT Example
-                           : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class EXAMPLE_EXPORT Example : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        Example( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  Example(const std::string& name);
 
-        void init(const std::string& robotName);
+  void init(const std::string& robotName);
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(firstAddend,  double);
-        DECLARE_SIGNAL_IN(secondAddend, double);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(firstAddend, double);
+  DECLARE_SIGNAL_IN(secondAddend, double);
 
-        DECLARE_SIGNAL_OUT(sum, double);
-        DECLARE_SIGNAL_OUT(nbJoints, int);
+  DECLARE_SIGNAL_OUT(sum, double);
+  DECLARE_SIGNAL_OUT(nbJoints, int);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      protected:
-        bool  m_initSucceeded;    /// true if the entity has been successfully initialized
-        RobotUtilShrPtr m_robot_util;
+ protected:
+  bool m_initSucceeded;  /// true if the entity has been successfully initialized
+  RobotUtilShrPtr m_robot_util;
 
-      }; // class Example
+};  // class Example
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_example_H__
+#endif  // #ifndef __sot_talos_balance_example_H__

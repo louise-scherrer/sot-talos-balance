@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (com_admittance_controller_EXPORTS)
-#    define COMADMITTANCECONTROLLER_EXPORT __declspec(dllexport)
-#  else
-#    define COMADMITTANCECONTROLLER_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(com_admittance_controller_EXPORTS)
+#define COMADMITTANCECONTROLLER_EXPORT __declspec(dllexport)
 #else
-#  define COMADMITTANCECONTROLLER_EXPORT
+#define COMADMITTANCECONTROLLER_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define COMADMITTANCECONTROLLER_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -41,58 +40,54 @@
 #include "boost/assign.hpp"
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class COMADMITTANCECONTROLLER_EXPORT ComAdmittanceController
-                                           : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class COMADMITTANCECONTROLLER_EXPORT ComAdmittanceController : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        ComAdmittanceController( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  ComAdmittanceController(const std::string &name);
 
-        void init(const double & dt);
+  void init(const double &dt);
 
-        void setPosition(const dynamicgraph::Vector &);
-        void setVelocity(const dynamicgraph::Vector &);
-        void setState(const dynamicgraph::Vector &, const dynamicgraph::Vector &);
+  void setPosition(const dynamicgraph::Vector &);
+  void setVelocity(const dynamicgraph::Vector &);
+  void setState(const dynamicgraph::Vector &, const dynamicgraph::Vector &);
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(zmp, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(zmpDes, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(ddcomDes, dynamicgraph::Vector);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(zmp, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(zmpDes, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(ddcomDes, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(ddcomRef, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(ddcomRef, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_INNER(stateRef, dynamicgraph::Vector);
+  DECLARE_SIGNAL_INNER(stateRef, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(comRef, dynamicgraph::Vector);
-        DECLARE_SIGNAL_OUT(dcomRef, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(comRef, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(dcomRef, dynamicgraph::Vector);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream &os) const;
 
-      protected:
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
-        dynamicgraph::Vector m_state; // internal state
-        double m_dt;
+ protected:
+  bool m_initSucceeded;          /// true if the entity has been successfully initialized
+  dynamicgraph::Vector m_state;  // internal state
+  double m_dt;
 
-      }; // class ComAdmittanceController
+};  // class ComAdmittanceController
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_com_admittance_controller_H__
+#endif  // #ifndef __sot_talos_balance_com_admittance_controller_H__

@@ -35,10 +35,11 @@ namespace dg = ::dynamicgraph;
 using namespace dg;
 using namespace dg::command;
 
-//Size to be aligned                       "-------------------------------------------------------"
-#define PROFILE_SIMPLE_STATE_INTEGRATOR_COMPUTATION      "SimpleStateIntegrator computation                                  "
+// Size to be aligned                       "-------------------------------------------------------"
+#define PROFILE_SIMPLE_STATE_INTEGRATOR_COMPUTATION \
+  "SimpleStateIntegrator computation                                  "
 
-#define INPUT_SIGNALS     m_controlSIN
+#define INPUT_SIGNALS m_controlSIN
 
 #define OUTPUT_SIGNALS m_stateSOUT << m_velocitySOUT
 
@@ -47,25 +48,22 @@ using namespace dg::command;
 typedef SimpleStateIntegrator EntityClassName;
 
 /* --- DG FACTORY ---------------------------------------------------- */
-DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(SimpleStateIntegrator,
-                                   "SimpleStateIntegrator");
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(SimpleStateIntegrator, "SimpleStateIntegrator");
 
 /* ------------------------------------------------------------------- */
 /* --- CONSTRUCTION -------------------------------------------------- */
 /* ------------------------------------------------------------------- */
 SimpleStateIntegrator::SimpleStateIntegrator(const std::string& name)
-                : Entity(name)
-                , CONSTRUCT_SIGNAL_IN(control, dynamicgraph::Vector)
-                , CONSTRUCT_SIGNAL_OUT(state, dynamicgraph::Vector, INPUT_SIGNALS)
-                , CONSTRUCT_SIGNAL_OUT(velocity, dynamicgraph::Vector, NULL)
-{
-  Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
+    : Entity(name),
+      CONSTRUCT_SIGNAL_IN(control, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_OUT(state, dynamicgraph::Vector, INPUT_SIGNALS),
+      CONSTRUCT_SIGNAL_OUT(velocity, dynamicgraph::Vector, NULL) {
+  Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
 
   /* Commands. */
 
   std::string docstring;
 
-  
   docstring =
       "\n"
       "    Set integration timestep value\n"
@@ -84,21 +82,15 @@ SimpleStateIntegrator::SimpleStateIntegrator(const std::string& name)
       "\n"
       "    Set velocity vector value\n"
       "\n";
-  addCommand("setVelocity",
-             new command::Setter<SimpleStateIntegrator, Vector>(*this, &SimpleStateIntegrator::setVelocity, docstring));
+  addCommand("setVelocity", new command::Setter<SimpleStateIntegrator, Vector>(
+                                *this, &SimpleStateIntegrator::setVelocity, docstring));
 }
 
-void SimpleStateIntegrator::init(const double& step) {
-  timestep_ = step;
-}
+void SimpleStateIntegrator::init(const double& step) { timestep_ = step; }
 
-void SimpleStateIntegrator::setState(const dg::Vector& st) {
-  state_ = st;
-}
+void SimpleStateIntegrator::setState(const dg::Vector& st) { state_ = st; }
 
-void SimpleStateIntegrator::setVelocity(const dg::Vector& vel) {
-  velocity_ = vel;
-}
+void SimpleStateIntegrator::setVelocity(const dg::Vector& vel) { velocity_ = vel; }
 
 /* ------------------------------------------------------------------- */
 /* --- SIGNALS ------------------------------------------------------- */
@@ -106,20 +98,19 @@ void SimpleStateIntegrator::setVelocity(const dg::Vector& vel) {
 
 void SimpleStateIntegrator::integrateRollPitchYaw(Vector& state, const Vector& control, double dt) {
   using Eigen::AngleAxisd;
-  using Eigen::Vector3d;
   using Eigen::Matrix3d;
   using Eigen::QuaternionMapd;
+  using Eigen::Vector3d;
 
   typedef pinocchio::SpecialEuclideanOperationTpl<3, double> SE3;
   Eigen::Matrix<double, 7, 1> qin, qout;
   qin.head<3>() = state.head<3>();
 
-  QuaternionMapd quat (qin.tail<4>().data());
-  quat = AngleAxisd(state(5), Vector3d::UnitZ())
-         * AngleAxisd(state(4), Vector3d::UnitY())
-         * AngleAxisd(state(3), Vector3d::UnitX());
+  QuaternionMapd quat(qin.tail<4>().data());
+  quat = AngleAxisd(state(5), Vector3d::UnitZ()) * AngleAxisd(state(4), Vector3d::UnitY()) *
+         AngleAxisd(state(3), Vector3d::UnitX());
 
-  SE3().integrate (qin, control.head<6>() * dt, qout);
+  SE3().integrate(qin, control.head<6>() * dt, qout);
 
   Matrix3d rotationMatrix = QuaternionMapd(qout.tail<4>().data()).toRotationMatrix();
   // Create the Euler angles in good range : [-pi:pi]x[-pi/2:pi/2]x[-pi:pi]
@@ -130,7 +121,8 @@ void SimpleStateIntegrator::integrateRollPitchYaw(Vector& state, const Vector& c
   state.segment<3>(3) << rollPitchYaw;
 }
 
-void SimpleStateIntegrator::rotationMatrixToEuler(const Eigen::Matrix3d& rotationMatrix, Eigen::Vector3d& rollPitchYaw){
+void SimpleStateIntegrator::rotationMatrixToEuler(const Eigen::Matrix3d& rotationMatrix,
+                                                  Eigen::Vector3d& rollPitchYaw) {
   double m = sqrt(rotationMatrix(2, 1) * rotationMatrix(2, 1) + rotationMatrix(2, 2) * rotationMatrix(2, 2));
   double p = atan2(-rotationMatrix(2, 0), m);
   double r, y;
@@ -139,38 +131,33 @@ void SimpleStateIntegrator::rotationMatrixToEuler(const Eigen::Matrix3d& rotatio
     y = -atan2(rotationMatrix(0, 1), rotationMatrix(1, 1));
   } else {
     y = atan2(rotationMatrix(1, 0), rotationMatrix(0, 0));  // alpha
-    r = atan2(rotationMatrix(2, 1), rotationMatrix(2, 2)); // gamma
+    r = atan2(rotationMatrix(2, 1), rotationMatrix(2, 2));  // gamma
   }
   rollPitchYaw << r, p, y;
 }
 
-DEFINE_SIGNAL_OUT_FUNCTION(state, dynamicgraph::Vector)
-{
+DEFINE_SIGNAL_OUT_FUNCTION(state, dynamicgraph::Vector) {
   m_velocitySOUT.setConstant(velocity_);
-  m_velocitySOUT.setTime(iter+1);
+  m_velocitySOUT.setTime(iter + 1);
 
-  const dynamicgraph::Vector & control = m_controlSIN(iter);
+  const dynamicgraph::Vector& control = m_controlSIN(iter);
 
   const size_t sz = control.size();
-  if((size_t)(s.size())!=sz)
-    s.resize(sz);
-  if((size_t)(state_.size())!=sz)
-    throw std::runtime_error("Mismatching state and control size");
-  if((size_t)(velocity_.size())!=sz)
-    throw std::runtime_error("Mismatching velocity and control size");
+  if ((size_t)(s.size()) != sz) s.resize(sz);
+  if ((size_t)(state_.size()) != sz) throw std::runtime_error("Mismatching state and control size");
+  if ((size_t)(velocity_.size()) != sz) throw std::runtime_error("Mismatching velocity and control size");
 
   velocity_ = control;
 
   integrateRollPitchYaw(state_, control, timestep_);
-  state_.tail(sz-6) += control.tail(sz-6) * timestep_;
+  state_.tail(sz - 6) += control.tail(sz - 6) * timestep_;
 
   s = state_;
 
   return s;
 }
 
-DEFINE_SIGNAL_OUT_FUNCTION(velocity, dynamicgraph::Vector)
-{
+DEFINE_SIGNAL_OUT_FUNCTION(velocity, dynamicgraph::Vector) {
   s = velocity_;
   return s;
 }
@@ -181,17 +168,14 @@ DEFINE_SIGNAL_OUT_FUNCTION(velocity, dynamicgraph::Vector)
 /* --- ENTITY -------------------------------------------------------- */
 /* ------------------------------------------------------------------- */
 
-void SimpleStateIntegrator::display(std::ostream& os) const
-{
+void SimpleStateIntegrator::display(std::ostream& os) const {
   os << "SimpleStateIntegrator " << getName();
-  try
-  {
+  try {
     getProfiler().report_all(3, os);
+  } catch (ExceptionSignal e) {
   }
-  catch (ExceptionSignal e) {}
 }
 
-} // namespace talos_balance
-} // namespace sot
-} // namespace dynamicgraph
-
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

@@ -20,67 +20,57 @@
 #include <dynamic-graph/factory.h>
 #include <dynamic-graph/all-commands.h>
 
-namespace dynamicgraph
-{
-  namespace sot
-  {
-    namespace talos_balance
-    {
-      namespace dg = ::dynamicgraph;
-      using namespace dg;
-      using namespace dg::command;
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
+namespace dg = ::dynamicgraph;
+using namespace dg;
+using namespace dg::command;
 
-#define INPUT_SIGNALS     m_sinSIN
+#define INPUT_SIGNALS m_sinSIN
 
 #define OUTPUT_SIGNALS m_soutSOUT
 
-      /// Define EntityClassName here rather than in the header file
-      /// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
-      typedef IntIdentity EntityClassName;
+/// Define EntityClassName here rather than in the header file
+/// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
+typedef IntIdentity EntityClassName;
 
-      /* --- DG FACTORY ---------------------------------------------------- */
-      DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(IntIdentity,
-                                         "IntIdentity");
+/* --- DG FACTORY ---------------------------------------------------- */
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(IntIdentity, "IntIdentity");
 
-      /* ------------------------------------------------------------------- */
-      /* --- CONSTRUCTION -------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
-      IntIdentity::IntIdentity(const std::string& name)
-                      : Entity(name)
-                      , CONSTRUCT_SIGNAL_IN(sin,  int)
-                      , CONSTRUCT_SIGNAL_OUT(sout, int, INPUT_SIGNALS)
-      {
-        Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
+/* ------------------------------------------------------------------- */
+/* --- CONSTRUCTION -------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+IntIdentity::IntIdentity(const std::string& name)
+    : Entity(name), CONSTRUCT_SIGNAL_IN(sin, int), CONSTRUCT_SIGNAL_OUT(sout, int, INPUT_SIGNALS) {
+  Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
 
-        /* Commands. */
-        addCommand("init", makeCommandVoid0(*this, &IntIdentity::init, docCommandVoid0("Initialize the entity.")));
-      }
+  /* Commands. */
+  addCommand("init", makeCommandVoid0(*this, &IntIdentity::init, docCommandVoid0("Initialize the entity.")));
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- SIGNALS ------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- SIGNALS ------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      DEFINE_SIGNAL_OUT_FUNCTION(sout,int)
-      {
-        s = m_sinSIN(iter);
-        return s;
-      }
+DEFINE_SIGNAL_OUT_FUNCTION(sout, int) {
+  s = m_sinSIN(iter);
+  return s;
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- ENTITY -------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- ENTITY -------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      void IntIdentity::display(std::ostream& os) const
-      {
-        os << "IntIdentity " << getName();
-//        try
-//        {
-//          getProfiler().report_all(3, os);
-//        }
-//        catch (ExceptionSignal e) {}
-      }
+void IntIdentity::display(std::ostream& os) const {
+  os << "IntIdentity " << getName();
+  //        try
+  //        {
+  //          getProfiler().report_all(3, os);
+  //        }
+  //        catch (ExceptionSignal e) {}
+}
 
-    } // namespace talos_balance
-  } // namespace sot
-} // namespace dynamicgraph
-
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

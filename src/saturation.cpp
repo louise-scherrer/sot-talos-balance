@@ -23,12 +23,9 @@
 #include <dynamic-graph/all-commands.h>
 #include <sot/core/stop-watch.hh>
 
-namespace dynamicgraph
-{
-namespace sot
-{
-namespace talos_balance
-{
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
 namespace dg = ::dynamicgraph;
 using namespace dg;
 using namespace dg::command;
@@ -47,21 +44,19 @@ using namespace dg::command;
 typedef Saturation EntityClassName;
 
 /* --- DG FACTORY ---------------------------------------------------- */
-DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(Saturation,
-                                   "Saturation");
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(Saturation, "Saturation");
 
 /* ------------------------------------------------------------------- */
 /* --- CONSTRUCTION -------------------------------------------------- */
 /* ------------------------------------------------------------------- */
 Saturation::Saturation(const std::string &name)
-    : Entity(name)
-    , CONSTRUCT_SIGNAL_IN(x, dynamicgraph::Vector)
-    , CONSTRUCT_SIGNAL_IN(y, dynamicgraph::Vector)
-    , CONSTRUCT_SIGNAL_IN(k, double)
-    , CONSTRUCT_SIGNAL_IN(xLim, dynamicgraph::Vector)
-    , CONSTRUCT_SIGNAL_IN(yLim, dynamicgraph::Vector)
-    , CONSTRUCT_SIGNAL_OUT(yOut, dynamicgraph::Vector, INPUT_SIGNALS)
-{
+    : Entity(name),
+      CONSTRUCT_SIGNAL_IN(x, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(y, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(k, double),
+      CONSTRUCT_SIGNAL_IN(xLim, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(yLim, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_OUT(yOut, dynamicgraph::Vector, INPUT_SIGNALS) {
   Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
 }
 
@@ -69,8 +64,7 @@ Saturation::Saturation(const std::string &name)
 /* --- SIGNALS ------------------------------------------------------- */
 /* ------------------------------------------------------------------- */
 
-DEFINE_SIGNAL_OUT_FUNCTION(yOut, dynamicgraph::Vector)
-{
+DEFINE_SIGNAL_OUT_FUNCTION(yOut, dynamicgraph::Vector) {
   getProfiler().start(PROFILE_SATURATION_SOUT_COMPUTATION);
 
   const double &x = m_xSIN(iter)[0];
@@ -86,20 +80,13 @@ DEFINE_SIGNAL_OUT_FUNCTION(yOut, dynamicgraph::Vector)
   assert(xLim > 0 && "xLim must be strictly positive");
   assert(yLim > 0 && "yLim must be strictly positive");
 
-  if ((x <= -xLim) or (x > xLim))
-  {
+  if ((x <= -xLim) or (x > xLim)) {
     r = 0.0;
-  }
-  else if (-xLim + yLim / k < x and x <= xLim - yLim / k)
-  {
+  } else if (-xLim + yLim / k < x and x <= xLim - yLim / k) {
     r = std::min(std::max(y, -yLim), yLim);
-  }
-  else if (-xLim < x and x <= -xLim + yLim / k)
-  {
+  } else if (-xLim < x and x <= -xLim + yLim / k) {
     r = std::min(std::max(y, -k * (x + xLim)), k * (x + xLim));
-  }
-  else if (xLim - yLim / k < x and x <= xLim)
-  {
+  } else if (xLim - yLim / k < x and x <= xLim) {
     r = std::min(std::max(y, -yLim + k * (x - xLim + yLim / k)), yLim - k * (x - xLim + yLim / k));
   }
 
@@ -116,17 +103,13 @@ DEFINE_SIGNAL_OUT_FUNCTION(yOut, dynamicgraph::Vector)
 /* --- ENTITY -------------------------------------------------------- */
 /* ------------------------------------------------------------------- */
 
-void Saturation::display(std::ostream &os) const
-{
+void Saturation::display(std::ostream &os) const {
   os << "Saturation " << getName();
-  try
-  {
+  try {
     getProfiler().report_all(3, os);
-  }
-  catch (ExceptionSignal e)
-  {
+  } catch (ExceptionSignal e) {
   }
 }
-} // namespace talos_balance
-} // namespace sot
-} // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

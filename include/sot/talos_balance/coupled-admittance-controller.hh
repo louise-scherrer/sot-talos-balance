@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (admittance_controller_EXPORTS)
-#    define COUPLEDADMITTANCECONTROLLER_EXPORT __declspec(dllexport)
-#  else
-#    define COUPLEDADMITTANCECONTROLLER_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(admittance_controller_EXPORTS)
+#define COUPLEDADMITTANCECONTROLLER_EXPORT __declspec(dllexport)
 #else
-#  define COUPLEDADMITTANCECONTROLLER_EXPORT
+#define COUPLEDADMITTANCECONTROLLER_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define COUPLEDADMITTANCECONTROLLER_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -41,56 +40,52 @@
 #include "boost/assign.hpp"
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class COUPLEDADMITTANCECONTROLLER_EXPORT CoupledAdmittanceController
-	: public ::dynamicgraph::Entity
-      {
-	DYNAMIC_GRAPH_ENTITY_DECL();
+class COUPLEDADMITTANCECONTROLLER_EXPORT CoupledAdmittanceController : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-	  
-	  /* --- CONSTRUCTOR ---- */
-	  CoupledAdmittanceController( const std::string & name );
-		
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(kSum, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(kDiff, dynamicgraph::Vector);
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        DECLARE_SIGNAL_IN(tauL, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(tauR, dynamicgraph::Vector);
+  /* --- CONSTRUCTOR ---- */
+  CoupledAdmittanceController(const std::string& name);
 
-        DECLARE_SIGNAL_IN(tauDesL, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(tauDesR, dynamicgraph::Vector);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(kSum, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(kDiff, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_INNER(tauSum, dynamicgraph::Vector);
-        DECLARE_SIGNAL_INNER(tauDiff, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(tauL, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(tauR, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_INNER(tauDesSum, dynamicgraph::Vector);
-        DECLARE_SIGNAL_INNER(tauDesDiff, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(tauDesL, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(tauDesR, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_INNER(dqRefSum, dynamicgraph::Vector);
-        DECLARE_SIGNAL_INNER(dqRefDiff, dynamicgraph::Vector);
+  DECLARE_SIGNAL_INNER(tauSum, dynamicgraph::Vector);
+  DECLARE_SIGNAL_INNER(tauDiff, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(dqRefL, dynamicgraph::Vector);
-        DECLARE_SIGNAL_OUT(dqRefR, dynamicgraph::Vector);
+  DECLARE_SIGNAL_INNER(tauDesSum, dynamicgraph::Vector);
+  DECLARE_SIGNAL_INNER(tauDesDiff, dynamicgraph::Vector);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
-        
-      }; // class AdmittanceController
+  DECLARE_SIGNAL_INNER(dqRefSum, dynamicgraph::Vector);
+  DECLARE_SIGNAL_INNER(dqRefDiff, dynamicgraph::Vector);
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+  DECLARE_SIGNAL_OUT(dqRefL, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(dqRefR, dynamicgraph::Vector);
 
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
+};  // class AdmittanceController
 
-#endif // #ifndef __sot_talos_balance_admittance_controller_H__
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
+
+#endif  // #ifndef __sot_talos_balance_admittance_controller_H__

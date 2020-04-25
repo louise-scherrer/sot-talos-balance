@@ -21,213 +21,195 @@
 #include <dynamic-graph/all-commands.h>
 #include <sot/core/stop-watch.hh>
 
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
+namespace dg = ::dynamicgraph;
+using namespace dg;
+using namespace dg::command;
 
-namespace dynamicgraph
-{
-  namespace sot
-  {
-    namespace talos_balance
-    {
-      namespace dg = ::dynamicgraph;
-      using namespace dg;
-      using namespace dg::command;
+#define INPUT_SIGNALS                                                                                               \
+  m_phaseSIN << m_rightRollCoupledSIN << m_rightRollDecoupledSIN << m_rightPitchCoupledSIN                          \
+             << m_rightPitchDecoupledSIN << m_leftRollCoupledSIN << m_leftRollDecoupledSIN << m_leftPitchCoupledSIN \
+             << m_leftPitchDecoupledSIN
 
+#define OUTPUT_SIGNALS \
+  m_selecLeftSOUT << m_selecRightSOUT << m_rightRollSOUT << m_rightPitchSOUT << m_leftRollSOUT << m_leftPitchSOUT
 
-#define INPUT_SIGNALS     m_phaseSIN << m_rightRollCoupledSIN << m_rightRollDecoupledSIN << m_rightPitchCoupledSIN << m_rightPitchDecoupledSIN << m_leftRollCoupledSIN << m_leftRollDecoupledSIN << m_leftPitchCoupledSIN << m_leftPitchDecoupledSIN
+/// Define EntityClassName here rather than in the header file
+/// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
+typedef AnkleJointSelector EntityClassName;
 
-#define OUTPUT_SIGNALS m_selecLeftSOUT << m_selecRightSOUT << m_rightRollSOUT << m_rightPitchSOUT << m_leftRollSOUT << m_leftPitchSOUT
+/* --- DG FACTORY ---------------------------------------------------- */
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(AnkleJointSelector, "AnkleJointSelector");
 
-      /// Define EntityClassName here rather than in the header file
-      /// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
-      typedef AnkleJointSelector EntityClassName;
+/* ------------------------------------------------------------------- */
+/* --- CONSTRUCTION -------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+AnkleJointSelector::AnkleJointSelector(const std::string& name)
+    : Entity(name),
+      CONSTRUCT_SIGNAL_IN(phase, int),
+      CONSTRUCT_SIGNAL_IN(rightRollCoupled, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(rightRollDecoupled, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(rightPitchCoupled, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(rightPitchDecoupled, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(leftRollCoupled, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(leftRollDecoupled, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(leftPitchCoupled, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(leftPitchDecoupled, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_OUT(selecLeft, Flags, m_phaseSIN),
+      CONSTRUCT_SIGNAL_OUT(selecRight, Flags, m_phaseSIN),
+      CONSTRUCT_SIGNAL_OUT(rightRoll, dynamicgraph::Vector,
+                           m_phaseSIN << m_rightRollCoupledSIN << m_rightRollDecoupledSIN),
+      CONSTRUCT_SIGNAL_OUT(rightPitch, dynamicgraph::Vector,
+                           m_phaseSIN << m_rightPitchCoupledSIN << m_rightPitchDecoupledSIN),
+      CONSTRUCT_SIGNAL_OUT(leftRoll, dynamicgraph::Vector,
+                           m_phaseSIN << m_leftRollCoupledSIN << m_leftRollDecoupledSIN),
+      CONSTRUCT_SIGNAL_OUT(leftPitch, dynamicgraph::Vector,
+                           m_phaseSIN << m_leftPitchCoupledSIN << m_leftPitchDecoupledSIN),
+      m_zeros(),
+      m_ones(true),
+      m_initSucceeded(false) {
+  Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
 
-      /* --- DG FACTORY ---------------------------------------------------- */
-      DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(AnkleJointSelector,
-                                         "AnkleJointSelector");
+  /* Commands. */
+  addCommand("init", makeCommandVoid1(*this, &AnkleJointSelector::init,
+                                      docCommandVoid1("Initialize the entity.", "Number of joints")));
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- CONSTRUCTION -------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
-      AnkleJointSelector::AnkleJointSelector(const std::string& name)
-                      : Entity(name)
-                      , CONSTRUCT_SIGNAL_IN(phase, int)
-                      , CONSTRUCT_SIGNAL_IN(rightRollCoupled, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(rightRollDecoupled, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(rightPitchCoupled, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(rightPitchDecoupled, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(leftRollCoupled, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(leftRollDecoupled, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(leftPitchCoupled, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(leftPitchDecoupled, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_OUT(selecLeft, Flags, m_phaseSIN)
-                      , CONSTRUCT_SIGNAL_OUT(selecRight, Flags, m_phaseSIN)
-                      , CONSTRUCT_SIGNAL_OUT(rightRoll,  dynamicgraph::Vector, m_phaseSIN << m_rightRollCoupledSIN  << m_rightRollDecoupledSIN)
-                      , CONSTRUCT_SIGNAL_OUT(rightPitch, dynamicgraph::Vector, m_phaseSIN << m_rightPitchCoupledSIN << m_rightPitchDecoupledSIN)
-                      , CONSTRUCT_SIGNAL_OUT(leftRoll,   dynamicgraph::Vector, m_phaseSIN << m_leftRollCoupledSIN   << m_leftRollDecoupledSIN)
-                      , CONSTRUCT_SIGNAL_OUT(leftPitch,  dynamicgraph::Vector, m_phaseSIN << m_leftPitchCoupledSIN  << m_leftPitchDecoupledSIN)
-                      , m_zeros()
-                      , m_ones(true)
-                      , m_initSucceeded(false)
-      {
-        Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
+void AnkleJointSelector::init(const int& n) {
+  m_n = n;
+  m_initSucceeded = true;
+}
 
-        /* Commands. */
-        addCommand("init", makeCommandVoid1(*this, &AnkleJointSelector::init, docCommandVoid1("Initialize the entity.","Number of joints")));
-      }
+/* ------------------------------------------------------------------- */
+/* --- SIGNALS ------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      void AnkleJointSelector::init(const int & n)
-      {
-        m_n = n;
-        m_initSucceeded = true;
-      }
+DEFINE_SIGNAL_OUT_FUNCTION(selecLeft, Flags) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute selecLeft before initialization!");
+    return s;
+  }
 
-      /* ------------------------------------------------------------------- */
-      /* --- SIGNALS ------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+  const int& phase = m_phaseSIN(iter);
 
-      DEFINE_SIGNAL_OUT_FUNCTION(selecLeft, Flags)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute selecLeft before initialization!");
-          return s;
-        }
+  s = phase >= 0 ? m_ones : m_zeros;
 
-        const int & phase = m_phaseSIN(iter);
+  return s;
+}
 
-        s = phase>=0 ? m_ones : m_zeros;
+DEFINE_SIGNAL_OUT_FUNCTION(selecRight, Flags) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute selecRight before initialization!");
+    return s;
+  }
 
-        return s;
-      }
+  const int& phase = m_phaseSIN(iter);
 
-      DEFINE_SIGNAL_OUT_FUNCTION(selecRight, Flags)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute selecRight before initialization!");
-          return s;
-        }
+  s = phase <= 0 ? m_ones : m_zeros;
 
-        const int & phase = m_phaseSIN(iter);
+  return s;
+}
 
-        s = phase<=0 ? m_ones : m_zeros;
+DEFINE_SIGNAL_OUT_FUNCTION(leftRoll, dg::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute leftRoll before initialization!");
+    return s;
+  }
+  if (s.size() != 1) s.resize(1);
 
-        return s;
-      }
+  const int& phase = m_phaseSIN(iter);
+  const dg::Vector& leftRollCoupled = m_leftRollCoupledSIN(iter);
+  const dg::Vector& leftRollDecoupled = m_leftRollDecoupledSIN(iter);
 
-      DEFINE_SIGNAL_OUT_FUNCTION(leftRoll, dg::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute leftRoll before initialization!");
-          return s;
-        }
-        if(s.size()!=1)
-          s.resize(1);
+  if (phase > 0)
+    s = leftRollDecoupled;
+  else if (phase == 0)
+    s = leftRollCoupled;
+  else
+    s.setZero();
 
-        const int & phase = m_phaseSIN(iter);
-        const dg::Vector & leftRollCoupled = m_leftRollCoupledSIN(iter);
-        const dg::Vector & leftRollDecoupled = m_leftRollDecoupledSIN(iter);
+  return s;
+}
 
-        if(phase>0)
-          s = leftRollDecoupled;
-        else if(phase==0)
-          s = leftRollCoupled;
-        else
-          s.setZero();
+DEFINE_SIGNAL_OUT_FUNCTION(leftPitch, dg::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute leftPitch before initialization!");
+    return s;
+  }
+  if (s.size() != 1) s.resize(1);
 
-        return s;
-      }
+  const int& phase = m_phaseSIN(iter);
+  const dg::Vector& leftPitchCoupled = m_leftPitchCoupledSIN(iter);
+  const dg::Vector& leftPitchDecoupled = m_leftPitchDecoupledSIN(iter);
 
-      DEFINE_SIGNAL_OUT_FUNCTION(leftPitch, dg::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute leftPitch before initialization!");
-          return s;
-        }
-        if(s.size()!=1)
-          s.resize(1);
+  if (phase > 0)
+    s = leftPitchDecoupled;
+  else if (phase == 0)
+    s = leftPitchCoupled;
+  else
+    s.setZero();
 
-        const int & phase = m_phaseSIN(iter);
-        const dg::Vector & leftPitchCoupled = m_leftPitchCoupledSIN(iter);
-        const dg::Vector & leftPitchDecoupled = m_leftPitchDecoupledSIN(iter);
+  return s;
+}
 
-        if(phase>0)
-          s = leftPitchDecoupled;
-        else if(phase==0)
-          s = leftPitchCoupled;
-        else
-          s.setZero();
+DEFINE_SIGNAL_OUT_FUNCTION(rightRoll, dg::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute rightRoll before initialization!");
+    return s;
+  }
+  if (s.size() != 1) s.resize(1);
 
-        return s;
-      }
+  const int& phase = m_phaseSIN(iter);
+  const dg::Vector& rightRollCoupled = m_rightRollCoupledSIN(iter);
+  const dg::Vector& rightRollDecoupled = m_rightRollDecoupledSIN(iter);
 
-      DEFINE_SIGNAL_OUT_FUNCTION(rightRoll, dg::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute rightRoll before initialization!");
-          return s;
-        }
-        if(s.size()!=1)
-          s.resize(1);
+  if (phase < 0)
+    s = rightRollDecoupled;
+  else if (phase == 0)
+    s = rightRollCoupled;
+  else
+    s.setZero();
 
-        const int & phase = m_phaseSIN(iter);
-        const dg::Vector & rightRollCoupled = m_rightRollCoupledSIN(iter);
-        const dg::Vector & rightRollDecoupled = m_rightRollDecoupledSIN(iter);
+  return s;
+}
 
-        if(phase<0)
-          s = rightRollDecoupled;
-        else if(phase==0)
-          s = rightRollCoupled;
-        else
-          s.setZero();
+DEFINE_SIGNAL_OUT_FUNCTION(rightPitch, dg::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute rightPitch before initialization!");
+    return s;
+  }
+  if (s.size() != 1) s.resize(1);
 
-        return s;
-      }
+  const int& phase = m_phaseSIN(iter);
+  const dg::Vector& rightPitchCoupled = m_rightPitchCoupledSIN(iter);
+  const dg::Vector& rightPitchDecoupled = m_rightPitchDecoupledSIN(iter);
 
-      DEFINE_SIGNAL_OUT_FUNCTION(rightPitch, dg::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute rightPitch before initialization!");
-          return s;
-        }
-        if(s.size()!=1)
-          s.resize(1);
+  if (phase < 0)
+    s = rightPitchDecoupled;
+  else if (phase == 0)
+    s = rightPitchCoupled;
+  else
+    s.setZero();
 
-        const int & phase = m_phaseSIN(iter);
-        const dg::Vector & rightPitchCoupled = m_rightPitchCoupledSIN(iter);
-        const dg::Vector & rightPitchDecoupled = m_rightPitchDecoupledSIN(iter);
+  return s;
+}
 
-        if(phase<0)
-          s = rightPitchDecoupled;
-        else if(phase==0)
-          s = rightPitchCoupled;
-        else
-          s.setZero();
+/* --- COMMANDS ---------------------------------------------------------- */
 
-        return s;
-      }
+/* ------------------------------------------------------------------- */
+/* --- ENTITY -------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      /* --- COMMANDS ---------------------------------------------------------- */
+void AnkleJointSelector::display(std::ostream& os) const {
+  os << "AnkleJointSelector " << getName();
+  try {
+    getProfiler().report_all(3, os);
+  } catch (ExceptionSignal e) {
+  }
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- ENTITY -------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
-
-      void AnkleJointSelector::display(std::ostream& os) const
-      {
-        os << "AnkleJointSelector " << getName();
-        try
-        {
-          getProfiler().report_all(3, os);
-        }
-        catch (ExceptionSignal e) {}
-      }
-
-    } // namespace talos_balance
-  } // namespace sot
-} // namespace dynamicgraph
-
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

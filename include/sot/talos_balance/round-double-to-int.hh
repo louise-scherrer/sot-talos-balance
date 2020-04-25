@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (position_controller_EXPORTS)
-#    define ROUND_DOUBLE_TO_INT_EXPORT __declspec(dllexport)
-#  else
-#    define ROUND_DOUBLE_TO_INT_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(position_controller_EXPORTS)
+#define ROUND_DOUBLE_TO_INT_EXPORT __declspec(dllexport)
 #else
-#  define ROUND_DOUBLE_TO_INT_EXPORT
+#define ROUND_DOUBLE_TO_INT_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define ROUND_DOUBLE_TO_INT_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -42,41 +41,37 @@
 #include "boost/assign.hpp"
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class ROUND_DOUBLE_TO_INT_EXPORT RoundDoubleToInt
-                           : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class ROUND_DOUBLE_TO_INT_EXPORT RoundDoubleToInt : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        RoundDoubleToInt( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  RoundDoubleToInt(const std::string& name);
 
-        void init(){}
+  void init() {}
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(sin,  double);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(sin, double);
 
-        DECLARE_SIGNAL_OUT(sout, int);
+  DECLARE_SIGNAL_OUT(sout, int);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      }; // class RoundDoubleToInt
+};  // class RoundDoubleToInt
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_round_double_to_int_H__
+#endif  // #ifndef __sot_talos_balance_round_double_to_int_H__

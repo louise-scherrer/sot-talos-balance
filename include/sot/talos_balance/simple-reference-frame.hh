@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (simple_reference_frame_EXPORTS)
-#    define SIMPLEREFERENCEFRAME_EXPORT __declspec(dllexport)
-#  else
-#    define SIMPLEREFERENCEFRAME_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(simple_reference_frame_EXPORTS)
+#define SIMPLEREFERENCEFRAME_EXPORT __declspec(dllexport)
 #else
-#  define SIMPLEREFERENCEFRAME_EXPORT
+#define SIMPLEREFERENCEFRAME_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define SIMPLEREFERENCEFRAME_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -45,50 +44,46 @@
 #include <dynamic-graph/linear-algebra.h>
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class SIMPLEREFERENCEFRAME_EXPORT SimpleReferenceFrame
-                                     : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class SIMPLEREFERENCEFRAME_EXPORT SimpleReferenceFrame : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        SimpleReferenceFrame( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  SimpleReferenceFrame(const std::string& name);
 
-        void init(const std::string& robotName);
+  void init(const std::string& robotName);
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(footLeft,  MatrixHomogeneous);
-        DECLARE_SIGNAL_IN(footRight, MatrixHomogeneous);
-        DECLARE_SIGNAL_IN(reset, bool);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(footLeft, MatrixHomogeneous);
+  DECLARE_SIGNAL_IN(footRight, MatrixHomogeneous);
+  DECLARE_SIGNAL_IN(reset, bool);
 
-        DECLARE_SIGNAL_OUT(referenceFrame, MatrixHomogeneous);
+  DECLARE_SIGNAL_OUT(referenceFrame, MatrixHomogeneous);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      protected:
-        RobotUtilShrPtr  m_robot_util;
-        Vector m_rightFootSoleXYZ;
-        MatrixHomogeneous m_referenceFrame;
-        bool m_first;
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
+ protected:
+  RobotUtilShrPtr m_robot_util;
+  Vector m_rightFootSoleXYZ;
+  MatrixHomogeneous m_referenceFrame;
+  bool m_first;
+  bool m_initSucceeded;  /// true if the entity has been successfully initialized
 
-      }; // class SimpleReferenceFrame
+};  // class SimpleReferenceFrame
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_simple_reference_frame_H__
+#endif  // #ifndef __sot_talos_balance_simple_reference_frame_H__

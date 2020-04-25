@@ -23,323 +23,284 @@
 #include <dynamic-graph/all-commands.h>
 #include <sot/core/stop-watch.hh>
 
-namespace dynamicgraph
-{
-  namespace sot
-  {
-    namespace talos_balance
-    {
-      namespace dg = ::dynamicgraph;
-      using namespace dg;
-      using namespace dg::command;
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
+namespace dg = ::dynamicgraph;
+using namespace dg;
+using namespace dg::command;
 
-//Size to be aligned                                         "-------------------------------------------------------"
+// Size to be aligned                                         "-------------------------------------------------------"
 #define PROFILE_DUMMYWALKINGPATTERNGENERATOR_DCM_COMPUTATION "DummyWalkingPatternGenerator: dcm computation          "
 
-#define INPUT_SIGNALS     m_omegaSIN << m_rhoSIN << m_phaseSIN << m_footLeftSIN << m_footRightSIN << m_waistSIN << m_comSIN << m_vcomSIN << m_acomSIN << m_zmpSIN << m_referenceFrameSIN
+#define INPUT_SIGNALS                                                                                            \
+  m_omegaSIN << m_rhoSIN << m_phaseSIN << m_footLeftSIN << m_footRightSIN << m_waistSIN << m_comSIN << m_vcomSIN \
+             << m_acomSIN << m_zmpSIN << m_referenceFrameSIN
 
 #define INNER_SIGNALS m_rfSINNER
 
-#define OUTPUT_SIGNALS m_comDesSOUT << m_vcomDesSOUT << m_acomDesSOUT << m_dcmDesSOUT << m_zmpDesSOUT << m_footLeftDesSOUT << m_footRightDesSOUT << m_waistDesSOUT << m_omegaDesSOUT << m_rhoDesSOUT << m_phaseDesSOUT
+#define OUTPUT_SIGNALS                                                                                \
+  m_comDesSOUT << m_vcomDesSOUT << m_acomDesSOUT << m_dcmDesSOUT << m_zmpDesSOUT << m_footLeftDesSOUT \
+               << m_footRightDesSOUT << m_waistDesSOUT << m_omegaDesSOUT << m_rhoDesSOUT << m_phaseDesSOUT
 
-      /// Define EntityClassName here rather than in the header file
-      /// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
-      typedef DummyWalkingPatternGenerator EntityClassName;
+/// Define EntityClassName here rather than in the header file
+/// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
+typedef DummyWalkingPatternGenerator EntityClassName;
 
-      /* --- DG FACTORY ---------------------------------------------------- */
-      DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(DummyWalkingPatternGenerator,
-                                         "DummyWalkingPatternGenerator");
+/* --- DG FACTORY ---------------------------------------------------- */
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(DummyWalkingPatternGenerator, "DummyWalkingPatternGenerator");
 
-      /* ------------------------------------------------------------------- */
-      /* --- CONSTRUCTION -------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
-      DummyWalkingPatternGenerator::DummyWalkingPatternGenerator(const std::string& name)
-                      : Entity(name)
-                      , CONSTRUCT_SIGNAL_IN(omega, double)
-                      , CONSTRUCT_SIGNAL_IN(rho, double)
-                      , CONSTRUCT_SIGNAL_IN(phase, int)
-                      , CONSTRUCT_SIGNAL_IN(footLeft,  MatrixHomogeneous)
-                      , CONSTRUCT_SIGNAL_IN(footRight, MatrixHomogeneous)
-                      , CONSTRUCT_SIGNAL_IN(waist, MatrixHomogeneous)
-                      , CONSTRUCT_SIGNAL_IN(com,  dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(vcom, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(acom, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(zmp, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(referenceFrame, MatrixHomogeneous)
-                      , CONSTRUCT_SIGNAL_INNER(rf, MatrixHomogeneous, m_referenceFrameSIN)
-                      , CONSTRUCT_SIGNAL_OUT(comDes,  dynamicgraph::Vector, m_comSIN  << m_rfSINNER)
-                      , CONSTRUCT_SIGNAL_OUT(vcomDes, dynamicgraph::Vector, m_vcomSIN << m_rfSINNER)
-                      , CONSTRUCT_SIGNAL_OUT(acomDes, dynamicgraph::Vector, m_acomSIN << m_rfSINNER)
-                      , CONSTRUCT_SIGNAL_OUT(dcmDes,  dynamicgraph::Vector, m_omegaSIN << m_comDesSOUT << m_vcomDesSOUT)
-                      , CONSTRUCT_SIGNAL_OUT(zmpDes,  dynamicgraph::Vector, m_omegaSIN << m_comDesSOUT << m_acomDesSOUT << m_rfSINNER << m_zmpSIN)
-                      , CONSTRUCT_SIGNAL_OUT(footLeftDes,  MatrixHomogeneous, m_footLeftSIN  << m_rfSINNER)
-                      , CONSTRUCT_SIGNAL_OUT(footRightDes, MatrixHomogeneous, m_footRightSIN << m_rfSINNER)
-                      , CONSTRUCT_SIGNAL_OUT(waistDes, MatrixHomogeneous, m_waistSIN << m_rfSINNER)
-                      , CONSTRUCT_SIGNAL_OUT(omegaDes, double, m_omegaSIN)
-                      , CONSTRUCT_SIGNAL_OUT(rhoDes, double, m_rhoSIN)
-                      , CONSTRUCT_SIGNAL_OUT(phaseDes, int, m_phaseSIN)
-                      , m_initSucceeded(false)
-      {
-        Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
+/* ------------------------------------------------------------------- */
+/* --- CONSTRUCTION -------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+DummyWalkingPatternGenerator::DummyWalkingPatternGenerator(const std::string& name)
+    : Entity(name),
+      CONSTRUCT_SIGNAL_IN(omega, double),
+      CONSTRUCT_SIGNAL_IN(rho, double),
+      CONSTRUCT_SIGNAL_IN(phase, int),
+      CONSTRUCT_SIGNAL_IN(footLeft, MatrixHomogeneous),
+      CONSTRUCT_SIGNAL_IN(footRight, MatrixHomogeneous),
+      CONSTRUCT_SIGNAL_IN(waist, MatrixHomogeneous),
+      CONSTRUCT_SIGNAL_IN(com, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(vcom, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(acom, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(zmp, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(referenceFrame, MatrixHomogeneous),
+      CONSTRUCT_SIGNAL_INNER(rf, MatrixHomogeneous, m_referenceFrameSIN),
+      CONSTRUCT_SIGNAL_OUT(comDes, dynamicgraph::Vector, m_comSIN << m_rfSINNER),
+      CONSTRUCT_SIGNAL_OUT(vcomDes, dynamicgraph::Vector, m_vcomSIN << m_rfSINNER),
+      CONSTRUCT_SIGNAL_OUT(acomDes, dynamicgraph::Vector, m_acomSIN << m_rfSINNER),
+      CONSTRUCT_SIGNAL_OUT(dcmDes, dynamicgraph::Vector, m_omegaSIN << m_comDesSOUT << m_vcomDesSOUT),
+      CONSTRUCT_SIGNAL_OUT(zmpDes, dynamicgraph::Vector,
+                           m_omegaSIN << m_comDesSOUT << m_acomDesSOUT << m_rfSINNER << m_zmpSIN),
+      CONSTRUCT_SIGNAL_OUT(footLeftDes, MatrixHomogeneous, m_footLeftSIN << m_rfSINNER),
+      CONSTRUCT_SIGNAL_OUT(footRightDes, MatrixHomogeneous, m_footRightSIN << m_rfSINNER),
+      CONSTRUCT_SIGNAL_OUT(waistDes, MatrixHomogeneous, m_waistSIN << m_rfSINNER),
+      CONSTRUCT_SIGNAL_OUT(omegaDes, double, m_omegaSIN),
+      CONSTRUCT_SIGNAL_OUT(rhoDes, double, m_rhoSIN),
+      CONSTRUCT_SIGNAL_OUT(phaseDes, int, m_phaseSIN),
+      m_initSucceeded(false) {
+  Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
 
-        /* Commands. */
-        addCommand("init", makeCommandVoid0(*this, &DummyWalkingPatternGenerator::init, docCommandVoid0("Initialize the entity.")));
-      }
+  /* Commands. */
+  addCommand("init",
+             makeCommandVoid0(*this, &DummyWalkingPatternGenerator::init, docCommandVoid0("Initialize the entity.")));
+}
 
-      dynamicgraph::Vector DummyWalkingPatternGenerator::actInv(MatrixHomogeneous m, dynamicgraph::Vector v)
-      {
-        return m.linear().transpose()*(v-m.translation());
-      }
-      
-      MatrixHomogeneous DummyWalkingPatternGenerator::actInv(MatrixHomogeneous m1, MatrixHomogeneous m2)
-      {
-        MatrixHomogeneous res;
-        res.linear() = m1.linear().transpose()*m2.linear();
-        res.translation() = m1.linear().transpose()*(m2.translation()-m1.translation());
-        return res;
-      }
+dynamicgraph::Vector DummyWalkingPatternGenerator::actInv(MatrixHomogeneous m, dynamicgraph::Vector v) {
+  return m.linear().transpose() * (v - m.translation());
+}
 
-      void DummyWalkingPatternGenerator::init()
-      {
-        m_initSucceeded = true;
-      }
+MatrixHomogeneous DummyWalkingPatternGenerator::actInv(MatrixHomogeneous m1, MatrixHomogeneous m2) {
+  MatrixHomogeneous res;
+  res.linear() = m1.linear().transpose() * m2.linear();
+  res.translation() = m1.linear().transpose() * (m2.translation() - m1.translation());
+  return res;
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- SIGNALS ------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+void DummyWalkingPatternGenerator::init() { m_initSucceeded = true; }
 
-      DEFINE_SIGNAL_INNER_FUNCTION(rf, MatrixHomogeneous)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal rf before initialization!");
-          return s;
-        }
+/* ------------------------------------------------------------------- */
+/* --- SIGNALS ------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-        s = m_referenceFrameSIN.isPlugged() ? m_referenceFrameSIN(iter) : MatrixHomogeneous::Identity();
+DEFINE_SIGNAL_INNER_FUNCTION(rf, MatrixHomogeneous) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal rf before initialization!");
+    return s;
+  }
 
-        return s;
-      }
+  s = m_referenceFrameSIN.isPlugged() ? m_referenceFrameSIN(iter) : MatrixHomogeneous::Identity();
 
-      DEFINE_SIGNAL_OUT_FUNCTION(comDes, dynamicgraph::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal comDes before initialization!");
-          return s;
-        }
-        if(s.size()!=3)
-          s.resize(3);
+  return s;
+}
 
-        const Vector & com = m_comSIN(iter);
-        const MatrixHomogeneous & referenceFrame = m_rfSINNER(iter);
+DEFINE_SIGNAL_OUT_FUNCTION(comDes, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal comDes before initialization!");
+    return s;
+  }
+  if (s.size() != 3) s.resize(3);
 
-        assert( com.size()==3 && "Unexpected size of signal com" );
+  const Vector& com = m_comSIN(iter);
+  const MatrixHomogeneous& referenceFrame = m_rfSINNER(iter);
 
-        s = actInv(referenceFrame, com);
+  assert(com.size() == 3 && "Unexpected size of signal com");
 
-        return s;
-      }
+  s = actInv(referenceFrame, com);
 
-      DEFINE_SIGNAL_OUT_FUNCTION(vcomDes, dynamicgraph::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal vcomDes before initialization!");
-          return s;
-        }
-        if(s.size()!=3)
-          s.resize(3);
+  return s;
+}
 
-        const Vector & vcom = m_vcomSIN(iter);
-        const MatrixHomogeneous & referenceFrame = m_rfSINNER(iter);
+DEFINE_SIGNAL_OUT_FUNCTION(vcomDes, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal vcomDes before initialization!");
+    return s;
+  }
+  if (s.size() != 3) s.resize(3);
 
-        assert( vcom.size()==3 && "Unexpected size of signal vcom" );
+  const Vector& vcom = m_vcomSIN(iter);
+  const MatrixHomogeneous& referenceFrame = m_rfSINNER(iter);
 
-        s = referenceFrame.linear().transpose()*vcom;
+  assert(vcom.size() == 3 && "Unexpected size of signal vcom");
 
-        return s;
-      }
+  s = referenceFrame.linear().transpose() * vcom;
 
-      DEFINE_SIGNAL_OUT_FUNCTION(acomDes, dynamicgraph::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal acomDes before initialization!");
-          return s;
-        }
-        if(s.size()!=3)
-          s.resize(3);
+  return s;
+}
 
-        const Vector & acom = m_acomSIN(iter);
-        const MatrixHomogeneous & referenceFrame = m_rfSINNER(iter);
+DEFINE_SIGNAL_OUT_FUNCTION(acomDes, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal acomDes before initialization!");
+    return s;
+  }
+  if (s.size() != 3) s.resize(3);
 
-        assert( acom.size()==3 && "Unexpected size of signal acom" );
+  const Vector& acom = m_acomSIN(iter);
+  const MatrixHomogeneous& referenceFrame = m_rfSINNER(iter);
 
-        s = referenceFrame.linear().transpose()*acom;
+  assert(acom.size() == 3 && "Unexpected size of signal acom");
 
-        return s;
-      }
+  s = referenceFrame.linear().transpose() * acom;
 
-      DEFINE_SIGNAL_OUT_FUNCTION(dcmDes, dynamicgraph::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal dcmDes before initialization!");
-          return s;
-        }
-        if(s.size()!=3)
-          s.resize(3);
+  return s;
+}
 
-        const double & omega = m_omegaSIN(iter);
-        const Vector & comDes = m_comDesSOUT(iter);
-        const Vector & vcomDes = m_vcomDesSOUT(iter);
+DEFINE_SIGNAL_OUT_FUNCTION(dcmDes, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal dcmDes before initialization!");
+    return s;
+  }
+  if (s.size() != 3) s.resize(3);
 
-        s = comDes + vcomDes/omega;
+  const double& omega = m_omegaSIN(iter);
+  const Vector& comDes = m_comDesSOUT(iter);
+  const Vector& vcomDes = m_vcomDesSOUT(iter);
 
-        return s;
-      }
+  s = comDes + vcomDes / omega;
 
-      DEFINE_SIGNAL_OUT_FUNCTION(zmpDes, dynamicgraph::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal zmpDes before initialization!");
-          return s;
-        }
-        if(s.size()!=3)
-          s.resize(3);
+  return s;
+}
 
-        Eigen::Vector3d zmpDes;
+DEFINE_SIGNAL_OUT_FUNCTION(zmpDes, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal zmpDes before initialization!");
+    return s;
+  }
+  if (s.size() != 3) s.resize(3);
 
-        if(m_zmpSIN.isPlugged())
-        {
-          const Vector & zmp = m_zmpSIN(iter);
-          const MatrixHomogeneous & referenceFrame = m_rfSINNER(iter);
+  Eigen::Vector3d zmpDes;
 
-          zmpDes[0] = zmp[0];
-          zmpDes[1] = zmp[1];
-          zmpDes[2] = zmp.size()>2 ? zmp[2] : 0.;
+  if (m_zmpSIN.isPlugged()) {
+    const Vector& zmp = m_zmpSIN(iter);
+    const MatrixHomogeneous& referenceFrame = m_rfSINNER(iter);
 
-          zmpDes = actInv(referenceFrame, zmpDes);
-        }
-        else
-        {
-          const double & omega = m_omegaSIN(iter);
-          const Vector & comDes = m_comDesSOUT(iter);
-          const Vector & acomDes = m_acomDesSOUT(iter);
+    zmpDes[0] = zmp[0];
+    zmpDes[1] = zmp[1];
+    zmpDes[2] = zmp.size() > 2 ? zmp[2] : 0.;
 
-          zmpDes = comDes - acomDes/(omega*omega);
-          zmpDes[2] = 0.0;
-        }
+    zmpDes = actInv(referenceFrame, zmpDes);
+  } else {
+    const double& omega = m_omegaSIN(iter);
+    const Vector& comDes = m_comDesSOUT(iter);
+    const Vector& acomDes = m_acomDesSOUT(iter);
 
-        s = zmpDes;
+    zmpDes = comDes - acomDes / (omega * omega);
+    zmpDes[2] = 0.0;
+  }
 
-        return s;
-      }
+  s = zmpDes;
 
-      DEFINE_SIGNAL_OUT_FUNCTION(footLeftDes, MatrixHomogeneous)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal footLeftDes before initialization!");
-          return s;
-        }
+  return s;
+}
 
-        MatrixHomogeneous footLeft = m_footLeftSIN(iter);
+DEFINE_SIGNAL_OUT_FUNCTION(footLeftDes, MatrixHomogeneous) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal footLeftDes before initialization!");
+    return s;
+  }
 
-        const MatrixHomogeneous & referenceFrame = m_rfSINNER(iter);
+  MatrixHomogeneous footLeft = m_footLeftSIN(iter);
 
-        s = actInv(referenceFrame, footLeft);
+  const MatrixHomogeneous& referenceFrame = m_rfSINNER(iter);
 
-        return s;
-      }
+  s = actInv(referenceFrame, footLeft);
 
-      DEFINE_SIGNAL_OUT_FUNCTION(footRightDes, MatrixHomogeneous)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal footRightDes before initialization!");
-          return s;
-        }
+  return s;
+}
 
-        MatrixHomogeneous footRight = m_footRightSIN(iter);
+DEFINE_SIGNAL_OUT_FUNCTION(footRightDes, MatrixHomogeneous) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal footRightDes before initialization!");
+    return s;
+  }
 
-        const MatrixHomogeneous & referenceFrame = m_rfSINNER(iter);
+  MatrixHomogeneous footRight = m_footRightSIN(iter);
 
-        s = actInv(referenceFrame, footRight);
+  const MatrixHomogeneous& referenceFrame = m_rfSINNER(iter);
 
-        return s;
-      }
+  s = actInv(referenceFrame, footRight);
 
-      DEFINE_SIGNAL_OUT_FUNCTION(waistDes, MatrixHomogeneous)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal waistDes before initialization!");
-          return s;
-        }
+  return s;
+}
 
-        const MatrixHomogeneous & waist = m_waistSIN(iter);
-        const MatrixHomogeneous & referenceFrame = m_rfSINNER(iter);
+DEFINE_SIGNAL_OUT_FUNCTION(waistDes, MatrixHomogeneous) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal waistDes before initialization!");
+    return s;
+  }
 
-        s = actInv(referenceFrame, waist);
+  const MatrixHomogeneous& waist = m_waistSIN(iter);
+  const MatrixHomogeneous& referenceFrame = m_rfSINNER(iter);
 
-        return s;
-      }
+  s = actInv(referenceFrame, waist);
 
-      DEFINE_SIGNAL_OUT_FUNCTION(omegaDes, double)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal omegaDes before initialization!");
-          return s;
-        }
+  return s;
+}
 
-        s = m_omegaSIN(iter);
-        return s;
-      }
+DEFINE_SIGNAL_OUT_FUNCTION(omegaDes, double) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal omegaDes before initialization!");
+    return s;
+  }
 
-      DEFINE_SIGNAL_OUT_FUNCTION(rhoDes, double)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal rhoDes before initialization!");
-          return s;
-        }
+  s = m_omegaSIN(iter);
+  return s;
+}
 
-        s = m_rhoSIN(iter);
-        return s;
-      }
+DEFINE_SIGNAL_OUT_FUNCTION(rhoDes, double) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal rhoDes before initialization!");
+    return s;
+  }
 
-      DEFINE_SIGNAL_OUT_FUNCTION(phaseDes, int)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal phaseDes before initialization!");
-          return s;
-        }
+  s = m_rhoSIN(iter);
+  return s;
+}
 
-        s = m_phaseSIN(iter);
-        return s;
-      }
+DEFINE_SIGNAL_OUT_FUNCTION(phaseDes, int) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal phaseDes before initialization!");
+    return s;
+  }
 
-      /* --- COMMANDS ---------------------------------------------------------- */
+  s = m_phaseSIN(iter);
+  return s;
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- ENTITY -------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* --- COMMANDS ---------------------------------------------------------- */
 
-      void DummyWalkingPatternGenerator::display(std::ostream& os) const
-      {
-        os << "DummyWalkingPatternGenerator " << getName();
-        try
-        {
-          getProfiler().report_all(3, os);
-        }
-        catch (ExceptionSignal e) {}
-      }
-    } // namespace talos_balance
-  } // namespace sot
-} // namespace dynamicgraph
+/* ------------------------------------------------------------------- */
+/* --- ENTITY -------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
+void DummyWalkingPatternGenerator::display(std::ostream& os) const {
+  os << "DummyWalkingPatternGenerator " << getName();
+  try {
+    getProfiler().report_all(3, os);
+  } catch (ExceptionSignal e) {
+  }
+}
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

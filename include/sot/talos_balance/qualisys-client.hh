@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (position_controller_EXPORTS)
-#    define QUALISYS_CLIENT_EXPORT __declspec(dllexport)
-#  else
-#    define QUALISYS_CLIENT_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(position_controller_EXPORTS)
+#define QUALISYS_CLIENT_EXPORT __declspec(dllexport)
 #else
-#  define QUALISYS_CLIENT_EXPORT
+#define QUALISYS_CLIENT_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define QUALISYS_CLIENT_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -50,53 +49,49 @@
 #include "sot/talos_balance/sdk_qualisys/RTPacket.h"
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class QUALISYS_CLIENT_EXPORT QualisysClient
-                           : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class QUALISYS_CLIENT_EXPORT QualisysClient : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        QualisysClient( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  QualisysClient(const std::string& name);
 
-        void init();
+  void init();
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(dummy,  double);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(dummy, double);
 
-        /* --- COMMANDS --- */
-        void registerRigidBody(const std::string& RBname);
-        void setMocapIPAdress(const std::string& ipAdress);
-        void getRigidBodyList(); ///If connected, return the list of all the rigid bodies available.
-        
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  void registerRigidBody(const std::string& RBname);
+  void setMocapIPAdress(const std::string& ipAdress);
+  void getRigidBodyList();  /// If connected, return the list of all the rigid bodies available.
 
-      protected:
-        bool                       m_initSucceeded;  // true if the entity has been successfully initialized
-        bool                       m_printRigidBodyList = false;
-        std::vector<std::string>   m_RBnames;        // vector of names of registered rigid bodies
-        std::vector<dg::Vector>    m_RBpositions;     // vector of rigid bodies positions
-        void manageNetworkFrame();
-        boost::thread              m_thread{&QualisysClient::manageNetworkFrame,this}; 
-        boost::mutex               m_mutex;
-        std::string                m_serverAddr =  "127.0.0.1"; 
-        dg::Vector& readGenericRigidBody(const int RBidx, dg::Vector& res, const int& time);
-      }; // class QualisysClient
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+ protected:
+  bool m_initSucceeded;  // true if the entity has been successfully initialized
+  bool m_printRigidBodyList = false;
+  std::vector<std::string> m_RBnames;     // vector of names of registered rigid bodies
+  std::vector<dg::Vector> m_RBpositions;  // vector of rigid bodies positions
+  void manageNetworkFrame();
+  boost::thread m_thread{&QualisysClient::manageNetworkFrame, this};
+  boost::mutex m_mutex;
+  std::string m_serverAddr = "127.0.0.1";
+  dg::Vector& readGenericRigidBody(const int RBidx, dg::Vector& res, const int& time);
+};  // class QualisysClient
 
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-#endif // #ifndef __sot_talos_balance_qualisys_client_H__
+#endif  // #ifndef __sot_talos_balance_qualisys_client_H__

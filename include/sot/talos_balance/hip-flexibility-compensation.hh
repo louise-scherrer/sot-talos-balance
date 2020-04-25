@@ -49,8 +49,7 @@ namespace talos_balance {
 /* --- CLASS ----------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-class HIPFLEXIBILITYCOMPENSATION_EXPORT HipFlexibilityCompensation
-    : public ::dynamicgraph::Entity {
+class HIPFLEXIBILITYCOMPENSATION_EXPORT HipFlexibilityCompensation : public ::dynamicgraph::Entity {
   DYNAMIC_GRAPH_ENTITY_DECL();
 
  public:
@@ -71,15 +70,15 @@ class HIPFLEXIBILITYCOMPENSATION_EXPORT HipFlexibilityCompensation
   DECLARE_SIGNAL_IN(K_l, double);
   /// \brief Right flexibility correction for the angular computation
   DECLARE_SIGNAL_IN(K_r, double);
-  /// \brief Derivative gain (double) for the error 
+  /// \brief Derivative gain (double) for the error
   // DECLARE_SIGNAL_IN(K_d, double);
 
   /// \brief  Low pass filter of the signal tau
-  DECLARE_SIGNAL_OUT(tau_filt, dynamicgraph::Vector); 
-  /// \brief  Angular correction of the flexibility 
+  DECLARE_SIGNAL_OUT(tau_filt, dynamicgraph::Vector);
+  /// \brief  Angular correction of the flexibility
   DECLARE_SIGNAL_OUT(delta_q, dynamicgraph::Vector);
   /// \brief  Corrected desired joint configuration of the robot with flexibility joint configuration
-  /// q_cmd = q_des + RateLimiter(delta_q) 
+  /// q_cmd = q_des + RateLimiter(delta_q)
   DECLARE_SIGNAL_OUT(q_cmd, dynamicgraph::Vector);
 
   /* --- COMMANDS --- */
@@ -87,7 +86,7 @@ class HIPFLEXIBILITYCOMPENSATION_EXPORT HipFlexibilityCompensation
   virtual void display(std::ostream& os) const;
 
   /// \brief Initialize the entity
-  void init(const double &dt, const std::string& robotName);
+  void init(const double& dt, const std::string& robotName);
   /// \brief Set the LowPassFilter frequency for the torque computation.
   void setTorqueLowPassFilterFrequency(const double& frequency);
   /// \brief Set the value of the saturation for the angular correction computation.
@@ -95,10 +94,11 @@ class HIPFLEXIBILITYCOMPENSATION_EXPORT HipFlexibilityCompensation
   /// \brief Set the value of the limiter for the the rate limiter of delta_q.
   void setRateLimiter(const double& rate);
   /// \brief Compute the low pass filter of a signal given a frequency and the previous signal.
-  dynamicgraph::Vector lowPassFilter(const double& frequency, const dynamicgraph::Vector& signal, dynamicgraph::Vector& previous_signal);
+  dynamicgraph::Vector lowPassFilter(const double& frequency, const dynamicgraph::Vector& signal,
+                                     dynamicgraph::Vector& previous_signal);
   /// \brief Compute the limiter of a signal given the previous signal (based on first derivative).
-  void rateLimiter(const dynamicgraph::Vector& signal, dynamicgraph::Vector& previous_signal, dynamicgraph::Vector& output);
-
+  void rateLimiter(const dynamicgraph::Vector& signal, dynamicgraph::Vector& previous_signal,
+                   dynamicgraph::Vector& output);
 
  protected:
   bool m_initSucceeded;  /// true if the entity has been successfully initialized
@@ -119,4 +119,4 @@ class HIPFLEXIBILITYCOMPENSATION_EXPORT HipFlexibilityCompensation
 }  // namespace sot
 }  // namespace dynamicgraph
 
-#endif // #ifndef __sot_talos_balance_hip_flexibility_compensation_H__
+#endif  // #ifndef __sot_talos_balance_hip_flexibility_compensation_H__
