@@ -32,21 +32,8 @@ from sot_talos_balance.create_entities_utils import *
 # ADDED FROM APPLI ONLINE ISABELLE #
 #from dynamic_graph.sot.pattern_generator import PatternGenerator #ERROR: "DOESN't EXIST", indeed ...
 # TRYING IMPORTING THE PACKAGE FROM DEVEL-SRC
-#sys.path.insert(0, "/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages/dynamic_graph/sot/pattern_generator") #doesn't work
-#sys.path.insert(0, "/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages/dynamic_graph/sot/pattern_generator/pg") # either
-#sys.path.insert(0, "/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages/dynamic_graph/sot")#either
-#sys.path.insert(0, "/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages")#either: needs an __init__.py, in pattern_generator
 
-#sys.path.append("/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages")#either: : needs an __init__.py, in pattern_generator
-#sys.path.append("/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages/dynamic_graph")#either
-#sys.path.append("/home/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages/dynamic_graph/sot/")
-
-# LOCAL VERSION
-#sys.path.append("/local/lscherrer/lscherrer/devel-src/sot_bionic_ws/install/lib/python2.7/site-packages/dynamic_graph/sot/")
-# new path
-sys.path.append("/local/lscherrer/lscherrer/sot_ws/install/lib/python2.7/site-packages/dynamic_graph/sot/")
-from pattern_generator import PatternGenerator # this works, not very pretty but works for now
-# END ADDED
+from dynamic_graph.sot.pattern_generator import PatternGenerator
 
 # 09.04.20 est a 100 dans dcmZmpControl_file, used to be 10
 cm_conf.CTRL_MAX = 100.0  # temporary hack
@@ -170,12 +157,9 @@ rospack = RosPack() ## DO I NEED THAT ?
 robot.pg = PatternGenerator('pg')
 
 # MODIFIED WITH MY PATHS
-#robot.pg.setURDFpath("/local/imaroger/sot-pattern-generator/talos_reduced_wpg.urdf")
-#robot.pg.setSRDFpath("/local/imaroger/sot-pattern-generator/talos_wpg.srdf")
-#robot.pg.setURDFpath("/integration_tests/robotpkg-test-rc/install/share/talos_data/urdf/talos_reduced_wpg.urdf")
-#robot.pg.setSRDFpath("/integration_tests/robotpkg-test-rc/install/share/talos_data/srdf/talos_wpg.srdf")
-robot.pg.setURDFpath("/local/lscherrer/lscherrer/sot_ws/install/share/talos_data/urdf/talos_reduced_wpg.urdf")
-robot.pg.setSRDFpath("/local/lscherrer/lscherrer/sot_ws/install/share/talos_data/srdf/talos_wpg.srdf")
+talos_data_folder = rospack.get_path('talos_data')
+robot.pg.setURDFpath(talos_data_folder+'/urdf/talos_reduced_wpg.urdf')
+robot.pg.setSRDFpath(talos_data_folder+'/srdf/talos_wpg.srdf')
 ## END MODIFIED
 
 robot.pg.buildModel()
@@ -228,7 +212,7 @@ robot.pg.velocitydes.value=(0.1,0.0,0.0) # DEFAULT VALUE (0.1,0.0,0.0)
 
 #robot.pg.displaySignals()
 
-# -------------------------- TRIGGER -------------------------- 
+# -------------------------- TRIGGER --------------------------
 
 robot.triggerPG= BooleanIdentity('triggerPG')
 robot.triggerPG.sin.value = 0
@@ -260,7 +244,7 @@ wp.omega.value = omega
 #plug(robot.pg.waistattitudeabsolute, robot.waistToMatrix.sin) # works
 #plug(robot.waistToMatrix.sout, wp.waist)# waistToMatrix sort une matrice de rotation, waist prend une matrixHomo en entree...
 # 22.04 after modifying pg.cpp, new way to try and connect the waist
-plug(robot.pg.waistattitudematrix, wp.waist)
+plug(robot.pg.waistattitudematrixabsolute, wp.waist)
 
 #plug(robot.pg.waistattitudematrix, wp.waist)
 # fin
@@ -565,14 +549,14 @@ plug(robot.dvdt.sout, robot.dynamic.acceleration)
 
 robot.publisher = create_rospublish(robot, 'robot_publisher')
 
-## ADDED 
+## ADDED
 create_topic(robot.publisher, robot.pg, 'comref', robot = robot, data_type='vector')                      # desired CoM
 create_topic(robot.publisher, robot.pg, 'dcomref', robot = robot, data_type='vector')
 #create_topic(robot.publisher, robot.wp, 'waistDes', robot = robot, data_type='matrixHomo')
 create_topic(robot.publisher, robot.wp, 'waist', robot = robot, data_type='matrixHomo')
 create_topic(robot.publisher, robot.keepWaist.featureDes, 'position', robot = robot, data_type='matrixHomo')
 create_topic(robot.publisher, robot.dynamic, 'WT', robot = robot, data_type='matrixHomo')
-create_topic(robot.publisher, robot.pg, 'waistattitudematrix', robot = robot, data_type='matrixHomo') ## que font ces lignes exactement ??
+create_topic(robot.publisher, robot.pg, 'waistattitudematrixabsolute', robot = robot, data_type='matrixHomo') ## que font ces lignes exactement ??
 #create_topic(robot.publisher, robot.pg, 'waistattitudeabsolute', robot = robot, data_type='vectorRPY')
 
 create_topic(robot.publisher, robot.pg, 'leftfootref', robot = robot, data_type ='matrixHomo')
@@ -635,8 +619,7 @@ robot.tracer = TracerRealTime("com_tracer")
 robot.tracer.setBufferSize(80 * (2**20))
 #robot.tracer.open('/tmp', 'dg_', '.dat') ## THIS LINE DIFFERENT, TO CHECK, BELOW SOME NAMES DIFFERENT, CHECK AS WELL
 #REPLACED BY
-#robot.tracer.open('/home/lscherrer/devel-src/sot_bionic_ws/src/sot-talos-balance/python/sot_talos_balance/test/test_results', 'dg_', '.dat')
-robot.tracer.open('/local/lscherrer/lscherrer/sot_ws/src/sot-talos-balance/src/sot_talos_balance/test/test_results', 'dg_', '.dat')
+robot.tracer.open('/tmp', 'dg_', '.dat')
 #END REPLACED
 
 
@@ -644,7 +627,7 @@ robot.tracer.open('/local/lscherrer/lscherrer/sot_ws/src/sot-talos-balance/src/s
 # Info trouvee sur internet: 'Make sure signals are recomputed even if not used in the control graph'
 robot.device.after.addSignal('{0}.triger'.format(robot.tracer.name))
 
-# 30.03 
+# 30.03
 
 #robot.device.after.addSignal('robot.pg.waist...') renvoie 'entity not found'
 
@@ -666,7 +649,7 @@ addTrace(robot.tracer, robot.cdc_estimator, 'dc')  # estimated CoM velocity
 #addTrace(robot.tracer, robot.com_admittance_control, 'comRef')  # reference CoM
 # REPLACED BY and ADDED
 addTrace(robot.tracer, robot.pg, 'comref')
-addTrace(robot.tracer, robot.pg, 'dcomref')    
+addTrace(robot.tracer, robot.pg, 'dcomref')
 addTrace(robot.tracer, robot.pg, 'ddcomref')
 
 addTrace(robot.tracer, robot.pg, 'rightfootref')

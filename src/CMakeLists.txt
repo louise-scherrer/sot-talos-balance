@@ -67,6 +67,8 @@ FOREACH(plugin ${plugins})
   ENDIF(BUILD_PYTHON_INTERFACE)
 ENDFOREACH(plugin)
 
+TARGET_LINK_LIBRARIES(distribute-wrench eiquadprog::eiquadprog)
+
 IF(BUILD_PYTHON_INTERFACE)
   SOT_TALOS_BALANCE_PYTHON_MODULE("" ${PROJECT_NAME} wrap)
 
