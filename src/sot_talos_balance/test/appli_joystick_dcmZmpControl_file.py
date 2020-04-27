@@ -481,7 +481,7 @@ robot.taskCom.feature.selec.value = '011'
 robot.keepWaist = MetaTaskKine6d('keepWaist', robot.dynamic, 'WT', robot.OperationalPointsMap['waist'])
 robot.keepWaist.feature.frame('desired')
 robot.keepWaist.gain.setConstant(300)
-#plug(robot.wp.waist, robot.keepWaist.featureDes.position)
+#plug(robot.wp.waist, robot.keepWaist.featureDes.position) # keep waistDes  = out signal
 #plug(robot.wp.waist, robot.keepWaist.feature.position)
 plug(robot.wp.waistDes, robot.keepWaist.featureDes.position) #de base
 robot.keepWaist.feature.selec.value = '111000'
