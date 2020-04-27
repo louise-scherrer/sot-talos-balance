@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (dcm_controller_EXPORTS)
-#    define DCMCONTROLLER_EXPORT __declspec(dllexport)
-#  else
-#    define DCMCONTROLLER_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(dcm_controller_EXPORTS)
+#define DCMCONTROLLER_EXPORT __declspec(dllexport)
 #else
-#  define DCMCONTROLLER_EXPORT
+#define DCMCONTROLLER_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define DCMCONTROLLER_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -41,59 +40,55 @@
 #include "boost/assign.hpp"
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class DCMCONTROLLER_EXPORT DcmController
-                                 : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class DCMCONTROLLER_EXPORT DcmController : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        DcmController( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  DcmController(const std::string& name);
 
-        void init(const double & dt);
+  void init(const double& dt);
 
-        void resetDcmIntegralError();
+  void resetDcmIntegralError();
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(Ki, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(Kz, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(decayFactor, double);
-        DECLARE_SIGNAL_IN(omega, double);
-        DECLARE_SIGNAL_IN(mass, double);
-        DECLARE_SIGNAL_IN(com, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(dcm, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(dcmDes, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(zmpDes, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(zmp, dynamicgraph::Vector);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(Ki, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(Kz, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(decayFactor, double);
+  DECLARE_SIGNAL_IN(omega, double);
+  DECLARE_SIGNAL_IN(mass, double);
+  DECLARE_SIGNAL_IN(com, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(dcm, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(dcmDes, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(zmpDes, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(zmp, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(zmpRef, dynamicgraph::Vector);
-        DECLARE_SIGNAL_OUT(wrenchRef, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(zmpRef, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(wrenchRef, dynamicgraph::Vector);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      protected:
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
-        dynamicgraph::Vector m_dcmIntegralError; // internal state
-        double m_dt;
+ protected:
+  bool m_initSucceeded;                     /// true if the entity has been successfully initialized
+  dynamicgraph::Vector m_dcmIntegralError;  // internal state
+  double m_dt;
 
-      }; // class DcmController
+};  // class DcmController
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_dcm_controller_H__
+#endif  // #ifndef __sot_talos_balance_dcm_controller_H__

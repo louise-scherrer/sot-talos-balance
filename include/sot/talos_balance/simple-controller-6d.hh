@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (simple_controller_6d_EXPORTS)
-#    define SIMPLE_CONTROLLER_6D_EXPORT __declspec(dllexport)
-#  else
-#    define SIMPLE_CONTROLLER_6D_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(simple_controller_6d_EXPORTS)
+#define SIMPLE_CONTROLLER_6D_EXPORT __declspec(dllexport)
 #else
-#  define SIMPLE_CONTROLLER_6D_EXPORT
+#define SIMPLE_CONTROLLER_6D_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define SIMPLE_CONTROLLER_6D_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -44,51 +43,47 @@
 #include <dynamic-graph/linear-algebra.h>
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class SIMPLE_CONTROLLER_6D_EXPORT SimpleController6d
-                                    : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class SIMPLE_CONTROLLER_6D_EXPORT SimpleController6d : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        SimpleController6d( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  SimpleController6d(const std::string& name);
 
-        void init();
+  void init();
 
-        template <typename Derived>
-        Eigen::Matrix3d skew(const Eigen::MatrixBase<Derived> & v);
+  template <typename Derived>
+  Eigen::Matrix3d skew(const Eigen::MatrixBase<Derived>& v);
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_IN(x, MatrixHomogeneous);
-        DECLARE_SIGNAL_IN(x_des, MatrixHomogeneous);
-        DECLARE_SIGNAL_IN(v_des, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(x, MatrixHomogeneous);
+  DECLARE_SIGNAL_IN(x_des, MatrixHomogeneous);
+  DECLARE_SIGNAL_IN(v_des, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(v_ref, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(v_ref, dynamicgraph::Vector);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      protected:
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
+ protected:
+  bool m_initSucceeded;  /// true if the entity has been successfully initialized
 
-      }; // class SimpleController6d
+};  // class SimpleController6d
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_simple_controller_6d_H__
+#endif  // #ifndef __sot_talos_balance_simple_controller_6d_H__

@@ -23,165 +23,148 @@
 #include <dynamic-graph/all-commands.h>
 #include <sot/core/stop-watch.hh>
 
-namespace dynamicgraph
-{
-  namespace sot
-  {
-    namespace talos_balance
-    {
-      namespace dg = ::dynamicgraph;
-      using namespace dg;
-      using namespace dg::command;
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
+namespace dg = ::dynamicgraph;
+using namespace dg;
+using namespace dg::command;
 
-//Size to be aligned                                   "-------------------------------------------------------"
+// Size to be aligned                                   "-------------------------------------------------------"
 
-#define PROFILE_SIMPLE_ADMITTANCECONTROLLER_QREF_COMPUTATION  "SimpleAdmittanceController: qRef computation                 "
+#define PROFILE_SIMPLE_ADMITTANCECONTROLLER_QREF_COMPUTATION \
+  "SimpleAdmittanceController: qRef computation                 "
 
-#define PROFILE_SIMPLE_ADMITTANCECONTROLLER_DQREF_COMPUTATION "SimpleAdmittanceController: dqRef computation                "
+#define PROFILE_SIMPLE_ADMITTANCECONTROLLER_DQREF_COMPUTATION \
+  "SimpleAdmittanceController: dqRef computation                "
 
-#define INPUT_SIGNALS     m_KpSIN << m_stateSIN << m_tauSIN << m_tauDesSIN
+#define INPUT_SIGNALS m_KpSIN << m_stateSIN << m_tauSIN << m_tauDesSIN
 
 #define OUTPUT_SIGNALS m_qRefSOUT << m_dqRefSOUT
 
-      /// Define EntityClassName here rather than in the header file
-      /// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
-      typedef SimpleAdmittanceController EntityClassName;
+/// Define EntityClassName here rather than in the header file
+/// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
+typedef SimpleAdmittanceController EntityClassName;
 
-      /* --- DG FACTORY ---------------------------------------------------- */
-      DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(SimpleAdmittanceController,
-                                         "SimpleAdmittanceController");
+/* --- DG FACTORY ---------------------------------------------------- */
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(SimpleAdmittanceController, "SimpleAdmittanceController");
 
-      /* ------------------------------------------------------------------- */
-      /* --- CONSTRUCTION -------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
-      SimpleAdmittanceController::SimpleAdmittanceController(const std::string& name)
-          : Entity(name)
-          , CONSTRUCT_SIGNAL_IN(Kp, dynamicgraph::Vector)
-          , CONSTRUCT_SIGNAL_IN(state, dynamicgraph::Vector)
-          , CONSTRUCT_SIGNAL_IN(tau, dynamicgraph::Vector)
-          , CONSTRUCT_SIGNAL_IN(tauDes, dynamicgraph::Vector)
-          , CONSTRUCT_SIGNAL_OUT(dqRef, dynamicgraph::Vector, INPUT_SIGNALS)
-          , CONSTRUCT_SIGNAL_OUT(qRef, dynamicgraph::Vector, m_dqRefSOUT)
-          , m_useState(false)
-          , m_initSucceeded(false)
-      {
-        Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
+/* ------------------------------------------------------------------- */
+/* --- CONSTRUCTION -------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+SimpleAdmittanceController::SimpleAdmittanceController(const std::string& name)
+    : Entity(name),
+      CONSTRUCT_SIGNAL_IN(Kp, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(state, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(tau, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(tauDes, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_OUT(dqRef, dynamicgraph::Vector, INPUT_SIGNALS),
+      CONSTRUCT_SIGNAL_OUT(qRef, dynamicgraph::Vector, m_dqRefSOUT),
+      m_useState(false),
+      m_initSucceeded(false) {
+  Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
 
-        /* Commands. */
-        addCommand("init", makeCommandVoid2(*this, &SimpleAdmittanceController::init, docCommandVoid2("Initialize the entity.","time step","Number of elements")));
-        addCommand("setPosition", makeCommandVoid1(*this, &SimpleAdmittanceController::setPosition, docCommandVoid1("Set initial reference position.","Initial position")));
-        addCommand("useExternalState", makeDirectSetter(*this,&m_useState, docDirectSetter("use external state","bool")));
-        addCommand("isUsingExternalState", makeDirectGetter(*this,&m_useState, docDirectGetter("use external state","bool")));
-      }
+  /* Commands. */
+  addCommand("init", makeCommandVoid2(*this, &SimpleAdmittanceController::init,
+                                      docCommandVoid2("Initialize the entity.", "time step", "Number of elements")));
+  addCommand("setPosition", makeCommandVoid1(*this, &SimpleAdmittanceController::setPosition,
+                                             docCommandVoid1("Set initial reference position.", "Initial position")));
+  addCommand("useExternalState", makeDirectSetter(*this, &m_useState, docDirectSetter("use external state", "bool")));
+  addCommand("isUsingExternalState",
+             makeDirectGetter(*this, &m_useState, docDirectGetter("use external state", "bool")));
+}
 
-      void SimpleAdmittanceController::init(const double & dt, const unsigned & n)
-      {
-        if(n<1)
-          return SEND_MSG("n must be at least 1", MSG_TYPE_ERROR);
-        if(!m_KpSIN.isPlugged())
-          return SEND_MSG("Init failed: signal Kp is not plugged", MSG_TYPE_ERROR);
-        if(!m_tauSIN.isPlugged())
-          return SEND_MSG("Init failed: signal tau is not plugged", MSG_TYPE_ERROR);
-        if(!m_tauDesSIN.isPlugged())
-          return SEND_MSG("Init failed: signal tauDes is not plugged", MSG_TYPE_ERROR);
+void SimpleAdmittanceController::init(const double& dt, const unsigned& n) {
+  if (n < 1) return SEND_MSG("n must be at least 1", MSG_TYPE_ERROR);
+  if (!m_KpSIN.isPlugged()) return SEND_MSG("Init failed: signal Kp is not plugged", MSG_TYPE_ERROR);
+  if (!m_tauSIN.isPlugged()) return SEND_MSG("Init failed: signal tau is not plugged", MSG_TYPE_ERROR);
+  if (!m_tauDesSIN.isPlugged()) return SEND_MSG("Init failed: signal tauDes is not plugged", MSG_TYPE_ERROR);
 
-        m_n = n;
-        m_dt = dt;
-        m_q.setZero(n);
-        m_initSucceeded = true;
-      }
+  m_n = n;
+  m_dt = dt;
+  m_q.setZero(n);
+  m_initSucceeded = true;
+}
 
-      void SimpleAdmittanceController::setPosition(const dynamicgraph::Vector & position)
+void SimpleAdmittanceController::setPosition(const dynamicgraph::Vector& position)
 
-      {
-        m_q = position;
-      }
+{
+  m_q = position;
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- SIGNALS ------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- SIGNALS ------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      DEFINE_SIGNAL_OUT_FUNCTION(dqRef, dynamicgraph::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal dqRef before initialization!");
-          return s;
-        }
-        if(s.size()!=m_n)
-          s.resize(m_n);
+DEFINE_SIGNAL_OUT_FUNCTION(dqRef, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal dqRef before initialization!");
+    return s;
+  }
+  if (s.size() != m_n) s.resize(m_n);
 
-        getProfiler().start(PROFILE_SIMPLE_ADMITTANCECONTROLLER_DQREF_COMPUTATION);
+  getProfiler().start(PROFILE_SIMPLE_ADMITTANCECONTROLLER_DQREF_COMPUTATION);
 
-        const Vector & tauDes = m_tauDesSIN(iter);
-        const Vector & tau = m_tauSIN(iter);
-        const Vector & Kp = m_KpSIN(iter);
+  const Vector& tauDes = m_tauDesSIN(iter);
+  const Vector& tau = m_tauSIN(iter);
+  const Vector& Kp = m_KpSIN(iter);
 
-        assert(tau.size()==m_n    && "Unexpected size of signal tau");
-        assert(tauDes.size()==m_n && "Unexpected size of signal tauDes");
-        assert(Kp.size()==m_n     && "Unexpected size of signal Kp");
+  assert(tau.size() == m_n && "Unexpected size of signal tau");
+  assert(tauDes.size() == m_n && "Unexpected size of signal tauDes");
+  assert(Kp.size() == m_n && "Unexpected size of signal Kp");
 
-        s = Kp.cwiseProduct(tauDes-tau);
+  s = Kp.cwiseProduct(tauDes - tau);
 
-        getProfiler().stop(PROFILE_SIMPLE_ADMITTANCECONTROLLER_DQREF_COMPUTATION);
+  getProfiler().stop(PROFILE_SIMPLE_ADMITTANCECONTROLLER_DQREF_COMPUTATION);
 
-        return s;
-      }
+  return s;
+}
 
-      DEFINE_SIGNAL_OUT_FUNCTION(qRef, dynamicgraph::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal qRef before initialization!");
-          return s;
-        }
-        if(s.size()!=m_n)
-          s.resize(m_n);
+DEFINE_SIGNAL_OUT_FUNCTION(qRef, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal qRef before initialization!");
+    return s;
+  }
+  if (s.size() != m_n) s.resize(m_n);
 
-        getProfiler().start(PROFILE_SIMPLE_ADMITTANCECONTROLLER_QREF_COMPUTATION);
+  getProfiler().start(PROFILE_SIMPLE_ADMITTANCECONTROLLER_QREF_COMPUTATION);
 
-        const Vector & dqRef = m_dqRefSOUT(iter);
+  const Vector& dqRef = m_dqRefSOUT(iter);
 
-        assert(dqRef.size()==m_n  && "Unexpected size of signal dqRef");
+  assert(dqRef.size() == m_n && "Unexpected size of signal dqRef");
 
-        if(m_useState)
-        {
-          if(!m_stateSIN.isPlugged())
-          {
-            SEND_MSG("Signal state is requested, but is not plugged", MSG_TYPE_ERROR);
-            return s;
-          }
-          const Vector & state = m_stateSIN(iter);
-          assert(state.size()==m_n  && "Unexpected size of signal state");
-          m_q = state;
-        }
+  if (m_useState) {
+    if (!m_stateSIN.isPlugged()) {
+      SEND_MSG("Signal state is requested, but is not plugged", MSG_TYPE_ERROR);
+      return s;
+    }
+    const Vector& state = m_stateSIN(iter);
+    assert(state.size() == m_n && "Unexpected size of signal state");
+    m_q = state;
+  }
 
-        m_q += dqRef*m_dt;
+  m_q += dqRef * m_dt;
 
-        s = m_q;
+  s = m_q;
 
-        getProfiler().stop(PROFILE_SIMPLE_ADMITTANCECONTROLLER_QREF_COMPUTATION);
+  getProfiler().stop(PROFILE_SIMPLE_ADMITTANCECONTROLLER_QREF_COMPUTATION);
 
-        return s;
-      }
+  return s;
+}
 
+/* --- COMMANDS ---------------------------------------------------------- */
 
-      /* --- COMMANDS ---------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- ENTITY -------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      /* ------------------------------------------------------------------- */
-      /* --- ENTITY -------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
-
-      void SimpleAdmittanceController::display(std::ostream& os) const
-      {
-        os << "SimpleAdmittanceController " << getName();
-        try
-        {
-          getProfiler().report_all(3, os);
-        }
-        catch (ExceptionSignal e) {}
-      }
-    } // namespace talos_balance
-  } // namespace sot
-} // namespace dynamicgraph
-
+void SimpleAdmittanceController::display(std::ostream& os) const {
+  os << "SimpleAdmittanceController " << getName();
+  try {
+    getProfiler().report_all(3, os);
+  } catch (ExceptionSignal e) {
+  }
+}
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

@@ -3,7 +3,7 @@
  *
  * LAAS-CNRS
  *
- * Fanny Risbourg 
+ * Fanny Risbourg
  * This file is part of sot-talos-balance.
  * See license file.
  */
@@ -16,13 +16,13 @@
 /* --------------------------------------------------------------------- */
 
 #if defined(WIN32)
-#  if defined(admittance_controller_end_effector_EXPORTS)
-#    define ADMITTANCECONTROLLERENDEFFECTOR_EXPORT __declspec(dllexport)
-#  else
-#    define ADMITTANCECONTROLLERENDEFFECTOR_EXPORT __declspec(dllimport)
-#  endif
+#if defined(admittance_controller_end_effector_EXPORTS)
+#define ADMITTANCECONTROLLERENDEFFECTOR_EXPORT __declspec(dllexport)
 #else
-#  define ADMITTANCECONTROLLERENDEFFECTOR_EXPORT
+#define ADMITTANCECONTROLLERENDEFFECTOR_EXPORT __declspec(dllimport)
+#endif
+#else
+#define ADMITTANCECONTROLLERENDEFFECTOR_EXPORT
 #endif
 
 /* --------------------------------------------------------------------- */
@@ -43,32 +43,27 @@
 #include <pinocchio/algorithm/frames.hpp>
 #include <pinocchio/algorithm/center-of-mass.hpp>
 
-namespace dynamicgraph
-{
-namespace sot
-{
-namespace talos_balance
-{
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
 
 /* --------------------------------------------------------------------- */
 /* --- CLASS ----------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
 /**
- * @brief  Admittance controller for an upper body end-effector (right or left 
+ * @brief  Admittance controller for an upper body end-effector (right or left
  *         wrist)
  *
- *  This entity computes a velocity reference for an end-effector based 
+ *  This entity computes a velocity reference for an end-effector based
  *  on the force error in the world frame :
  *  w_dq = integral(Kp(w_forceDes-w_force)) + Kd (w_dq)
  *
  */
-class ADMITTANCECONTROLLERENDEFFECTOR_EXPORT AdmittanceControllerEndEffector
-    : public ::dynamicgraph::Entity
-{
+class ADMITTANCECONTROLLERENDEFFECTOR_EXPORT AdmittanceControllerEndEffector : public ::dynamicgraph::Entity {
   DYNAMIC_GRAPH_ENTITY_DECL();
 
-public:
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /* --- CONSTRUCTOR ---- */
@@ -103,10 +98,9 @@ public:
    * @param[in]  dt  Time step of the control
    * @param[in]  sensorFrameName  Name of the force sensor of the end-effector
    *             used in the pinocchio model
-   * @param[in]  endeffectorName  Name of the endEffectorJoint 
+   * @param[in]  endeffectorName  Name of the endEffectorJoint
    */
-  void init(const double &dt, const std::string &sensorFrameName,
-            const std::string &endeffectorName);
+  void init(const double &dt, const std::string &sensorFrameName, const std::string &endeffectorName);
 
   /**
    * @brief      Reset the velocity
@@ -116,7 +110,7 @@ public:
   /* --- ENTITY INHERITANCE --- */
   virtual void display(std::ostream &os) const;
 
-protected:
+ protected:
   /// Dimension of the force signals and of the output
   int m_n;
   /// True if the entity has been successfully initialized
@@ -138,11 +132,11 @@ protected:
   pinocchio::FrameIndex m_sensorFrameId;
   /// Id of the joint of the end-effector
   pinocchio::JointIndex m_endEffectorId;
-  
-}; // class AdmittanceControllerEndEffector
 
-} // namespace talos_balance
-} // namespace sot
-} // namespace dynamicgraph
+};  // class AdmittanceControllerEndEffector
 
-#endif // #ifndef __sot_talos_balance_admittance_controller_end_effector_H__
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
+
+#endif  // #ifndef __sot_talos_balance_admittance_controller_end_effector_H__

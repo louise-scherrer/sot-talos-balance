@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (state_transformation_EXPORTS)
-#    define STATETRANSFORMATION_EXPORT __declspec(dllexport)
-#  else
-#    define STATETRANSFORMATION_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(state_transformation_EXPORTS)
+#define STATETRANSFORMATION_EXPORT __declspec(dllexport)
 #else
-#  define STATETRANSFORMATION_EXPORT
+#define STATETRANSFORMATION_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define STATETRANSFORMATION_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -45,47 +44,43 @@
 #include <dynamic-graph/linear-algebra.h>
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class STATETRANSFORMATION_EXPORT StateTransformation
-                                     : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class STATETRANSFORMATION_EXPORT StateTransformation : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        StateTransformation( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  StateTransformation(const std::string& name);
 
-        void init();
+  void init();
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(referenceFrame, MatrixHomogeneous);
-        DECLARE_SIGNAL_IN(q_in, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(v_in, dynamicgraph::Vector);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(referenceFrame, MatrixHomogeneous);
+  DECLARE_SIGNAL_IN(q_in, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(v_in, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(q, dynamicgraph::Vector);
-        DECLARE_SIGNAL_OUT(v, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(q, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(v, dynamicgraph::Vector);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      protected:
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
+ protected:
+  bool m_initSucceeded;  /// true if the entity has been successfully initialized
 
-      }; // class StateTransformation
+};  // class StateTransformation
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_state_transformation_H__
+#endif  // #ifndef __sot_talos_balance_state_transformation_H__

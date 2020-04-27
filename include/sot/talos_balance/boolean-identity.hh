@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (position_controller_EXPORTS)
-#    define BOOLEAN_IDENTITY_EXPORT __declspec(dllexport)
-#  else
-#    define BOOLEAN_IDENTITY_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(position_controller_EXPORTS)
+#define BOOLEAN_IDENTITY_EXPORT __declspec(dllexport)
 #else
-#  define BOOLEAN_IDENTITY_EXPORT
+#define BOOLEAN_IDENTITY_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define BOOLEAN_IDENTITY_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -42,41 +41,37 @@
 #include "boost/assign.hpp"
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class BOOLEAN_IDENTITY_EXPORT BooleanIdentity
-                           : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class BOOLEAN_IDENTITY_EXPORT BooleanIdentity : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        BooleanIdentity( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  BooleanIdentity(const std::string& name);
 
-        void init(){}
+  void init() {}
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(sin,  bool);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(sin, bool);
 
-        DECLARE_SIGNAL_OUT(sout, bool);
+  DECLARE_SIGNAL_OUT(sout, bool);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      }; // class BooleanIdentity
+};  // class BooleanIdentity
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_boolean_identity_H__
+#endif  // #ifndef __sot_talos_balance_boolean_identity_H__

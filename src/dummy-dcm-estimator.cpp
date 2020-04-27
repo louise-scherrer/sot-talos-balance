@@ -23,114 +23,98 @@
 #include <dynamic-graph/all-commands.h>
 #include <sot/core/stop-watch.hh>
 
-namespace dynamicgraph
-{
-  namespace sot
-  {
-    namespace talos_balance
-    {
-      namespace dg = ::dynamicgraph;
-      using namespace dg;
-      using namespace dg::command;
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
+namespace dg = ::dynamicgraph;
+using namespace dg;
+using namespace dg::command;
 
-//Size to be aligned                              "-------------------------------------------------------"
+// Size to be aligned                              "-------------------------------------------------------"
 #define PROFILE_DUMMYDCMESTIMATOR_DCM_COMPUTATION "DummyDcmEstimator: dcm computation                     "
 
-#define INPUT_SIGNALS     m_omegaSIN << m_massSIN << m_comSIN << m_momentaSIN
+#define INPUT_SIGNALS m_omegaSIN << m_massSIN << m_comSIN << m_momentaSIN
 
 #define OUTPUT_SIGNALS m_dcmSOUT
 
-      /// Define EntityClassName here rather than in the header file
-      /// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
-      typedef DummyDcmEstimator EntityClassName;
+/// Define EntityClassName here rather than in the header file
+/// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
+typedef DummyDcmEstimator EntityClassName;
 
-      /* --- DG FACTORY ---------------------------------------------------- */
-      DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(DummyDcmEstimator,
-                                         "DummyDcmEstimator");
+/* --- DG FACTORY ---------------------------------------------------- */
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(DummyDcmEstimator, "DummyDcmEstimator");
 
-      /* ------------------------------------------------------------------- */
-      /* --- CONSTRUCTION -------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
-      DummyDcmEstimator::DummyDcmEstimator(const std::string& name)
-                      : Entity(name)
-                      , CONSTRUCT_SIGNAL_IN(omega, double)
-                      , CONSTRUCT_SIGNAL_IN(mass, double)
-                      , CONSTRUCT_SIGNAL_IN(com, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_IN(momenta, dynamicgraph::Vector)
-                      , CONSTRUCT_SIGNAL_OUT(dcm, dynamicgraph::Vector, INPUT_SIGNALS)
-                      , m_initSucceeded(false)
-      {
-        Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
+/* ------------------------------------------------------------------- */
+/* --- CONSTRUCTION -------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+DummyDcmEstimator::DummyDcmEstimator(const std::string& name)
+    : Entity(name),
+      CONSTRUCT_SIGNAL_IN(omega, double),
+      CONSTRUCT_SIGNAL_IN(mass, double),
+      CONSTRUCT_SIGNAL_IN(com, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(momenta, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_OUT(dcm, dynamicgraph::Vector, INPUT_SIGNALS),
+      m_initSucceeded(false) {
+  Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
 
-        /* Commands. */
-        addCommand("init", makeCommandVoid0(*this, &DummyDcmEstimator::init, docCommandVoid0("Initialize the entity.")));
-      }
+  /* Commands. */
+  addCommand("init", makeCommandVoid0(*this, &DummyDcmEstimator::init, docCommandVoid0("Initialize the entity.")));
+}
 
-      void DummyDcmEstimator::init()
-      {
-        if(!m_omegaSIN.isPlugged())
-          return SEND_MSG("Init failed: signal omega is not plugged", MSG_TYPE_ERROR);
-        if(!m_massSIN.isPlugged())
-          return SEND_MSG("Init failed: signal mass is not plugged", MSG_TYPE_ERROR);
-        if(!m_comSIN.isPlugged())
-          return SEND_MSG("Init failed: signal com is not plugged", MSG_TYPE_ERROR);
-        if(!m_momentaSIN.isPlugged())
-          return SEND_MSG("Init failed: signal momenta is not plugged", MSG_TYPE_ERROR);
+void DummyDcmEstimator::init() {
+  if (!m_omegaSIN.isPlugged()) return SEND_MSG("Init failed: signal omega is not plugged", MSG_TYPE_ERROR);
+  if (!m_massSIN.isPlugged()) return SEND_MSG("Init failed: signal mass is not plugged", MSG_TYPE_ERROR);
+  if (!m_comSIN.isPlugged()) return SEND_MSG("Init failed: signal com is not plugged", MSG_TYPE_ERROR);
+  if (!m_momentaSIN.isPlugged()) return SEND_MSG("Init failed: signal momenta is not plugged", MSG_TYPE_ERROR);
 
-        m_initSucceeded = true;
-      }
+  m_initSucceeded = true;
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- SIGNALS ------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- SIGNALS ------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      DEFINE_SIGNAL_OUT_FUNCTION(dcm, dynamicgraph::Vector)
-      {
-        if(!m_initSucceeded)
-        {
-          SEND_WARNING_STREAM_MSG("Cannot compute signal com_dcom before initialization!");
-          return s;
-        }
-        if(s.size()!=3)
-          s.resize(3);
+DEFINE_SIGNAL_OUT_FUNCTION(dcm, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal com_dcom before initialization!");
+    return s;
+  }
+  if (s.size() != 3) s.resize(3);
 
-        getProfiler().start(PROFILE_DUMMYDCMESTIMATOR_DCM_COMPUTATION);
+  getProfiler().start(PROFILE_DUMMYDCMESTIMATOR_DCM_COMPUTATION);
 
-        const double & omega = m_omegaSIN(iter);
-        const double & mass = m_massSIN(iter);
-        const Vector & com = m_comSIN(iter);
-        const Vector & momenta = m_momentaSIN(iter);
+  const double& omega = m_omegaSIN(iter);
+  const double& mass = m_massSIN(iter);
+  const Vector& com = m_comSIN(iter);
+  const Vector& momenta = m_momentaSIN(iter);
 
-        assert( com.size()==3 && "Unexpected size of signal com" );
-        assert( (momenta.size()==3 || momenta.size()==6) && "Unexpected size of signal momenta" );
+  assert(com.size() == 3 && "Unexpected size of signal com");
+  assert((momenta.size() == 3 || momenta.size() == 6) && "Unexpected size of signal momenta");
 
-        const Eigen::Vector3d dcom = momenta.head<3>()/mass;
+  const Eigen::Vector3d dcom = momenta.head<3>() / mass;
 
-        const Eigen::Vector3d dcm = com + dcom/omega;
+  const Eigen::Vector3d dcm = com + dcom / omega;
 
-        s = dcm;
+  s = dcm;
 
-        getProfiler().stop(PROFILE_DUMMYDCMESTIMATOR_DCM_COMPUTATION);
+  getProfiler().stop(PROFILE_DUMMYDCMESTIMATOR_DCM_COMPUTATION);
 
-        return s;
-      }
+  return s;
+}
 
-      /* --- COMMANDS ---------------------------------------------------------- */
+/* --- COMMANDS ---------------------------------------------------------- */
 
-      /* ------------------------------------------------------------------- */
-      /* --- ENTITY -------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- ENTITY -------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      void DummyDcmEstimator::display(std::ostream& os) const
-      {
-        os << "DummyDcmEstimator " << getName();
-        try
-        {
-          getProfiler().report_all(3, os);
-        }
-        catch (ExceptionSignal e) {}
-      }
-    } // namespace talos_balance
-  } // namespace sot
-} // namespace dynamicgraph
-
+void DummyDcmEstimator::display(std::ostream& os) const {
+  os << "DummyDcmEstimator " << getName();
+  try {
+    getProfiler().report_all(3, os);
+  } catch (ExceptionSignal e) {
+  }
+}
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

@@ -14,12 +14,9 @@
 #include <dynamic-graph/all-commands.h>
 #include <sot/core/stop-watch.hh>
 
-namespace dynamicgraph
-{
-namespace sot
-{
-namespace talos_balance
-{
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
 namespace dg = ::dynamicgraph;
 using namespace dg;
 using namespace pinocchio;
@@ -45,8 +42,7 @@ using namespace dg::command;
 typedef AdmittanceControllerEndEffector EntityClassName;
 
 /* --- DG FACTORY ---------------------------------------------------- */
-DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(AdmittanceControllerEndEffector,
-                                   "AdmittanceControllerEndEffector");
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(AdmittanceControllerEndEffector, "AdmittanceControllerEndEffector");
 
 /* ------------------------------------------------------------------- */
 /* --- CONSTRUCTION -------------------------------------------------- */
@@ -67,54 +63,38 @@ AdmittanceControllerEndEffector::AdmittanceControllerEndEffector(const std::stri
       m_model(),
       m_data(),
       m_sensorFrameId(),
-      m_endEffectorId()
-{
+      m_endEffectorId() {
   Entity::signalRegistration(INPUT_SIGNALS << INNER_SIGNALS << OUTPUT_SIGNALS);
 
   /* Commands. */
-  addCommand("init", makeCommandVoid3(*this,
-                                       &AdmittanceControllerEndEffector::init,
-                                       docCommandVoid3("Initialize the entity.",
-                                                      "time step",
-                                                      "sensor frame name",
+  addCommand("init", makeCommandVoid3(*this, &AdmittanceControllerEndEffector::init,
+                                      docCommandVoid3("Initialize the entity.", "time step", "sensor frame name",
                                                       "end Effector Joint Name")));
-  addCommand("resetDq", makeCommandVoid0(*this,
-    &AdmittanceControllerEndEffector::resetDq,
-    docCommandVoid0("resetDq")));
+  addCommand("resetDq",
+             makeCommandVoid0(*this, &AdmittanceControllerEndEffector::resetDq, docCommandVoid0("resetDq")));
 }
 
-void AdmittanceControllerEndEffector::init(const double &dt,
-                                           const std::string &sensorFrameName,
-                                           const std::string &endEffectorName)
-{
+void AdmittanceControllerEndEffector::init(const double &dt, const std::string &sensorFrameName,
+                                           const std::string &endEffectorName) {
   if (!m_dqSaturationSIN.isPlugged())
     return SEND_MSG("Init failed: signal dqSaturation is not plugged", MSG_TYPE_ERROR);
-  if (!m_KpSIN.isPlugged())
-    return SEND_MSG("Init failed: signal Kp is not plugged", MSG_TYPE_ERROR);
-  if (!m_KdSIN.isPlugged())
-    return SEND_MSG("Init failed: signal Kd is not plugged", MSG_TYPE_ERROR);
-  if (!m_forceSIN.isPlugged())
-    return SEND_MSG("Init failed: signal force is not plugged", MSG_TYPE_ERROR);
-  if (!m_w_forceDesSIN.isPlugged())
-    return SEND_MSG("Init failed: signal w_forceDes is not plugged", MSG_TYPE_ERROR);
-  if (!m_qSIN.isPlugged())
-    return SEND_MSG("Init failed: signal q is not plugged", MSG_TYPE_ERROR);
+  if (!m_KpSIN.isPlugged()) return SEND_MSG("Init failed: signal Kp is not plugged", MSG_TYPE_ERROR);
+  if (!m_KdSIN.isPlugged()) return SEND_MSG("Init failed: signal Kd is not plugged", MSG_TYPE_ERROR);
+  if (!m_forceSIN.isPlugged()) return SEND_MSG("Init failed: signal force is not plugged", MSG_TYPE_ERROR);
+  if (!m_w_forceDesSIN.isPlugged()) return SEND_MSG("Init failed: signal w_forceDes is not plugged", MSG_TYPE_ERROR);
+  if (!m_qSIN.isPlugged()) return SEND_MSG("Init failed: signal q is not plugged", MSG_TYPE_ERROR);
 
   m_n = 6;
   m_dt = dt;
   m_w_dq.setZero(m_n);
 
-  try
-  {
+  try {
     /* Retrieve m_robot_util informations */
     std::string localName("robot");
-    if (isNameInRobotUtil(localName))
-    {
+    if (isNameInRobotUtil(localName)) {
       m_robot_util = getRobotUtil(localName);
       std::cerr << "m_robot_util:" << m_robot_util << std::endl;
-    }
-    else
-    {
+    } else {
       SEND_MSG("You should have a robotUtil pointer initialized before", MSG_TYPE_ERROR);
       return;
     }
@@ -124,20 +104,16 @@ void AdmittanceControllerEndEffector::init(const double &dt,
 
     m_endEffectorId = m_model.getJointId(endEffectorName);
     m_sensorFrameId = m_model.getFrameId(sensorFrameName);
-  }
-  catch (const std::exception &e)
-  {
+  } catch (const std::exception &e) {
     std::cout << e.what();
-    SEND_MSG("Init failed: Could load URDF :" + m_robot_util->m_urdf_filename,
-             MSG_TYPE_ERROR);
+    SEND_MSG("Init failed: Could load URDF :" + m_robot_util->m_urdf_filename, MSG_TYPE_ERROR);
     return;
   }
 
   m_initSucceeded = true;
 }
 
-void AdmittanceControllerEndEffector::resetDq()
-{
+void AdmittanceControllerEndEffector::resetDq() {
   m_w_dq.setZero(m_n);
   return;
 }
@@ -145,15 +121,12 @@ void AdmittanceControllerEndEffector::resetDq()
 /* ------------------------------------------------------------------- */
 /* --- SIGNALS ------------------------------------------------------- */
 /* ------------------------------------------------------------------- */
-DEFINE_SIGNAL_INNER_FUNCTION(w_force, dynamicgraph::Vector)
-{
-  if (!m_initSucceeded)
-  {
+DEFINE_SIGNAL_INNER_FUNCTION(w_force, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
     SEND_WARNING_STREAM_MSG("Cannot compute signal w_force before initialization!");
     return s;
   }
-  if(s.size()!=6)
-    s.resize(6);
+  if (s.size() != 6) s.resize(6);
 
   getProfiler().start(PROFILE_ADMITTANCECONTROLLERENDEFFECTOR_WFORCE_COMPUTATION);
 
@@ -173,15 +146,12 @@ DEFINE_SIGNAL_INNER_FUNCTION(w_force, dynamicgraph::Vector)
   return s;
 }
 
-DEFINE_SIGNAL_INNER_FUNCTION(w_dq, dynamicgraph::Vector)
-{
-  if (!m_initSucceeded)
-  {
+DEFINE_SIGNAL_INNER_FUNCTION(w_dq, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
     SEND_WARNING_STREAM_MSG("Cannot compute signal w_dq before initialization!");
     return s;
   }
-  if(s.size()!=6)
-    s.resize(6);
+  if (s.size() != 6) s.resize(6);
 
   getProfiler().start(PROFILE_ADMITTANCECONTROLLERENDEFFECTOR_WDQ_COMPUTATION);
 
@@ -198,12 +168,9 @@ DEFINE_SIGNAL_INNER_FUNCTION(w_dq, dynamicgraph::Vector)
 
   m_w_dq = m_w_dq + m_dt * (Kp.cwiseProduct(w_forceDes - w_force)) - Kd.cwiseProduct(m_w_dq);
 
-  for (int i = 0; i < m_n; i++)
-  {
-    if (m_w_dq[i] > dqSaturation[i])
-      m_w_dq[i] = dqSaturation[i];
-    if (m_w_dq[i] < -dqSaturation[i])
-      m_w_dq[i] = -dqSaturation[i];
+  for (int i = 0; i < m_n; i++) {
+    if (m_w_dq[i] > dqSaturation[i]) m_w_dq[i] = dqSaturation[i];
+    if (m_w_dq[i] < -dqSaturation[i]) m_w_dq[i] = -dqSaturation[i];
   }
 
   s = m_w_dq;
@@ -213,15 +180,12 @@ DEFINE_SIGNAL_INNER_FUNCTION(w_dq, dynamicgraph::Vector)
   return s;
 }
 
-DEFINE_SIGNAL_OUT_FUNCTION(dq, dynamicgraph::Vector)
-{
-  if (!m_initSucceeded)
-  {
+DEFINE_SIGNAL_OUT_FUNCTION(dq, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
     SEND_WARNING_STREAM_MSG("Cannot compute signal dq before initialization!");
     return s;
   }
-  if(s.size()!=6)
-    s.resize(6);
+  if (s.size() != 6) s.resize(6);
 
   getProfiler().start(PROFILE_ADMITTANCECONTROLLERENDEFFECTOR_DQ_COMPUTATION);
 
@@ -243,17 +207,13 @@ DEFINE_SIGNAL_OUT_FUNCTION(dq, dynamicgraph::Vector)
 /* ------------------------------------------------------------------- */
 /* --- ENTITY -------------------------------------------------------- */
 /* ------------------------------------------------------------------- */
-void AdmittanceControllerEndEffector::display(std::ostream &os) const
-{
+void AdmittanceControllerEndEffector::display(std::ostream &os) const {
   os << "AdmittanceControllerEndEffector " << getName();
-  try
-  {
+  try {
     getProfiler().report_all(3, os);
-  }
-  catch (ExceptionSignal e)
-  {
+  } catch (ExceptionSignal e) {
   }
 }
-} // namespace talos_balance
-} // namespace sot
-} // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

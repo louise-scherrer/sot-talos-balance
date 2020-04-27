@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (position_controller_EXPORTS)
-#    define QUATTOEULER_EXPORT __declspec(dllexport)
-#  else
-#    define QUATTOEULER_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(position_controller_EXPORTS)
+#define QUATTOEULER_EXPORT __declspec(dllexport)
 #else
-#  define QUATTOEULER_EXPORT
+#define QUATTOEULER_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define QUATTOEULER_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -45,40 +44,36 @@
 #include <dynamic-graph/linear-algebra.h>
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class QUATTOEULER_EXPORT QuatToEuler
-                               : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class QUATTOEULER_EXPORT QuatToEuler : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        QuatToEuler( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  QuatToEuler(const std::string& name);
 
-        void init() {}
+  void init() {}
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(quaternion, ::dynamicgraph::Vector);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(quaternion, ::dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(euler, ::dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(euler, ::dynamicgraph::Vector);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
-      }; // class QuatToEuler
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
+};  // class QuatToEuler
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_quat_to_euler_H__
+#endif  // #ifndef __sot_talos_balance_quat_to_euler_H__

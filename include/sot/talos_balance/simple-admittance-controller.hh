@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (admittance_controller_EXPORTS)
-#    define SIMPLEADMITTANCECONTROLLER_EXPORT __declspec(dllexport)
-#  else
-#    define SIMPLEADMITTANCECONTROLLER_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(admittance_controller_EXPORTS)
+#define SIMPLEADMITTANCECONTROLLER_EXPORT __declspec(dllexport)
 #else
-#  define SIMPLEADMITTANCECONTROLLER_EXPORT
+#define SIMPLEADMITTANCECONTROLLER_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define SIMPLEADMITTANCECONTROLLER_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -41,55 +40,52 @@
 #include "boost/assign.hpp"
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class SIMPLEADMITTANCECONTROLLER_EXPORT SimpleAdmittanceController
-	: public ::dynamicgraph::Entity
-      {
-	DYNAMIC_GRAPH_ENTITY_DECL();
+class SIMPLEADMITTANCECONTROLLER_EXPORT SimpleAdmittanceController : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-	  
-	  /* --- CONSTRUCTOR ---- */
-	  SimpleAdmittanceController( const std::string & name );
-	
-        void init(const double & dt, const unsigned & n);
-	
-        void setPosition(const dynamicgraph::Vector & position);
-	
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(state, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(tau, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(tauDes, dynamicgraph::Vector);
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        DECLARE_SIGNAL_OUT(dqRef, dynamicgraph::Vector);
-        DECLARE_SIGNAL_OUT(qRef, dynamicgraph::Vector);
+  /* --- CONSTRUCTOR ---- */
+  SimpleAdmittanceController(const std::string& name);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  void init(const double& dt, const unsigned& n);
 
-        bool m_useState;
-      protected:
-        int m_n;
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
-        dynamicgraph::Vector m_Kp;
-        dynamicgraph::Vector m_q; // internal state
-        double m_dt;
+  void setPosition(const dynamicgraph::Vector& position);
 
-      }; // class AdmittanceController
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(state, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(tau, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(tauDes, dynamicgraph::Vector);
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+  DECLARE_SIGNAL_OUT(dqRef, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(qRef, dynamicgraph::Vector);
 
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
+  bool m_useState;
 
-#endif // #ifndef __sot_talos_balance_admittance_controller_H__
+ protected:
+  int m_n;
+  bool m_initSucceeded;  /// true if the entity has been successfully initialized
+  dynamicgraph::Vector m_Kp;
+  dynamicgraph::Vector m_q;  // internal state
+  double m_dt;
+
+};  // class AdmittanceController
+
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
+
+#endif  // #ifndef __sot_talos_balance_admittance_controller_H__

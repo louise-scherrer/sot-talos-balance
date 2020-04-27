@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (ankle_admittance_controller_EXPORTS)
-#    define ANKLEADMITTANCECONTROLLER_EXPORT __declspec(dllexport)
-#  else
-#    define ANKLEADMITTANCECONTROLLER_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(ankle_admittance_controller_EXPORTS)
+#define ANKLEADMITTANCECONTROLLER_EXPORT __declspec(dllexport)
 #else
-#  define ANKLEADMITTANCECONTROLLER_EXPORT
+#define ANKLEADMITTANCECONTROLLER_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define ANKLEADMITTANCECONTROLLER_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -41,47 +40,43 @@
 #include "boost/assign.hpp"
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class ANKLEADMITTANCECONTROLLER_EXPORT AnkleAdmittanceController
-          : public ::dynamicgraph::Entity
-      {
-      DYNAMIC_GRAPH_ENTITY_DECL();
+class ANKLEADMITTANCECONTROLLER_EXPORT AnkleAdmittanceController : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        AnkleAdmittanceController( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  AnkleAdmittanceController(const std::string& name);
 
-        void init();
+  void init();
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(gainsXY, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(wrench, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(pRef, dynamicgraph::Vector);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(gainsXY, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(wrench, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(pRef, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(dRP, dynamicgraph::Vector);
-        DECLARE_SIGNAL_OUT(vDes, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(dRP, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(vDes, dynamicgraph::Vector);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      protected:
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
+ protected:
+  bool m_initSucceeded;  /// true if the entity has been successfully initialized
 
-      }; // class AnkleAdmittanceController
+};  // class AnkleAdmittanceController
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_ankle_admittance_controller_H__
+#endif  // #ifndef __sot_talos_balance_ankle_admittance_controller_H__

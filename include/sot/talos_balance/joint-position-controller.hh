@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (position_controller_EXPORTS)
-#    define JOINTPOSITIONCONTROLLER_EXPORT __declspec(dllexport)
-#  else
-#    define JOINTPOSITIONCONTROLLER_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(position_controller_EXPORTS)
+#define JOINTPOSITIONCONTROLLER_EXPORT __declspec(dllexport)
 #else
-#  define JOINTPOSITIONCONTROLLER_EXPORT
+#define JOINTPOSITIONCONTROLLER_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define JOINTPOSITIONCONTROLLER_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -41,49 +40,45 @@
 #include "boost/assign.hpp"
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class JOINTPOSITIONCONTROLLER_EXPORT JointPositionController
-                                           : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class JOINTPOSITIONCONTROLLER_EXPORT JointPositionController : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        JointPositionController( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  JointPositionController(const std::string& name);
 
-        void init(const unsigned & n);
+  void init(const unsigned& n);
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(state, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(qDes, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(dqDes, dynamicgraph::Vector);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(state, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(qDes, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(dqDes, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(dqRef, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(dqRef, dynamicgraph::Vector);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      protected:
-        int m_n;
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
-        dynamicgraph::Vector m_Kp;
+ protected:
+  int m_n;
+  bool m_initSucceeded;  /// true if the entity has been successfully initialized
+  dynamicgraph::Vector m_Kp;
 
-      }; // class JointPositionController
+};  // class JointPositionController
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_joint_position_controller_H__
+#endif  // #ifndef __sot_talos_balance_joint_position_controller_H__

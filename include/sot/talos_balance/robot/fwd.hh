@@ -17,17 +17,13 @@
 
 #ifndef __invdyn_robots_fwd_hpp__
 #define __invdyn_robots_fwd_hpp__
-namespace dynamicgraph
-{
-  namespace sot
-  {
-    namespace talos_balance
-    {
-      namespace robots
-      {
-        class RobotWrapper;
-      }
-    }
-  }
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
+namespace robots {
+class RobotWrapper;
 }
-#endif // ifndef __invdyn_robots_fwd_hpp__
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
+#endif  // ifndef __invdyn_robots_fwd_hpp__

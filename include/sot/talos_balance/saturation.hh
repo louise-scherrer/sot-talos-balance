@@ -39,23 +39,18 @@
 #include <map>
 #include "boost/assign.hpp"
 
-namespace dynamicgraph
-{
-namespace sot
-{
-namespace talos_balance
-{
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
 
 /* --------------------------------------------------------------------- */
 /* --- CLASS ----------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-class SATURATION_EXPORT Saturation
-    : public ::dynamicgraph::Entity
-{
+class SATURATION_EXPORT Saturation : public ::dynamicgraph::Entity {
   DYNAMIC_GRAPH_ENTITY_DECL();
 
-public:
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /* --- CONSTRUCTOR ---- */
@@ -75,10 +70,10 @@ public:
   /* --- ENTITY INHERITANCE --- */
   virtual void display(std::ostream &os) const;
 
-}; // class Saturation
+};  // class Saturation
 
-} // namespace talos_balance
-} // namespace sot
-} // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-#endif // #ifndef __sot_talos_balance_saturation_H__
+#endif  // #ifndef __sot_talos_balance_saturation_H__

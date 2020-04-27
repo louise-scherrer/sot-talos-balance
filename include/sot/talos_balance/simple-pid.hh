@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (simple_pid_EXPORTS)
-#    define SIMPLE_PID_EXPORT __declspec(dllexport)
-#  else
-#    define SIMPLE_PID_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(simple_pid_EXPORTS)
+#define SIMPLE_PID_EXPORT __declspec(dllexport)
 #else
-#  define SIMPLE_PID_EXPORT
+#define SIMPLE_PID_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define SIMPLE_PID_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -41,56 +40,52 @@
 #include "boost/assign.hpp"
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class SIMPLE_PID_EXPORT SimplePID
-                                    : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class SIMPLE_PID_EXPORT SimplePID : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        SimplePID( const std::string & name );
+  /* --- CONSTRUCTOR ---- */
+  SimplePID(const std::string& name);
 
-        void init(const double & dt, const int & N);
+  void init(const double& dt, const int& N);
 
-        void resetIntegralError();
+  void resetIntegralError();
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(Ki, dynamicgraph::Vector);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(Kp, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(Ki, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_IN(decayFactor, double);
+  DECLARE_SIGNAL_IN(decayFactor, double);
 
-        DECLARE_SIGNAL_IN(x, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(x_des, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(x, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(x_des, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_IN(dx_des, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(dx_des, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_OUT(dx_ref, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(dx_ref, dynamicgraph::Vector);
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-      protected:
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
-        dynamicgraph::Vector m_integralError; // internal state
-        double m_dt;
+ protected:
+  bool m_initSucceeded;                  /// true if the entity has been successfully initialized
+  dynamicgraph::Vector m_integralError;  // internal state
+  double m_dt;
 
-      }; // class SimplePID
+};  // class SimplePID
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_simple_pid_H__
+#endif  // #ifndef __sot_talos_balance_simple_pid_H__

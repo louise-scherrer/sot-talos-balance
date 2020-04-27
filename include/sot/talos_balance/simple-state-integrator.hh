@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (simple_state_integrator_EXPORTS)
-#    define SIMPLE_STATE_INTEGRATOR_EXPORT __declspec(dllexport)
-#  else
-#    define SIMPLE_STATE_INTEGRATOR_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(simple_state_integrator_EXPORTS)
+#define SIMPLE_STATE_INTEGRATOR_EXPORT __declspec(dllexport)
 #else
-#  define SIMPLE_STATE_INTEGRATOR_EXPORT
+#define SIMPLE_STATE_INTEGRATOR_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define SIMPLE_STATE_INTEGRATOR_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -52,9 +51,7 @@ namespace talos_balance {
 /* --- CLASS ----------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-class SIMPLE_STATE_INTEGRATOR_EXPORT SimpleStateIntegrator
-                         : public ::dynamicgraph::Entity
-{
+class SIMPLE_STATE_INTEGRATOR_EXPORT SimpleStateIntegrator : public ::dynamicgraph::Entity {
   DYNAMIC_GRAPH_ENTITY_DECL();
 
  protected:
@@ -73,7 +70,7 @@ class SIMPLE_STATE_INTEGRATOR_EXPORT SimpleStateIntegrator
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /* --- CONSTRUCTOR ---- */
-  SimpleStateIntegrator( const std::string & name );
+  SimpleStateIntegrator(const std::string& name);
 
   void init(const double& step);
 
@@ -89,22 +86,19 @@ class SIMPLE_STATE_INTEGRATOR_EXPORT SimpleStateIntegrator
 
   /* --- COMMANDS --- */
   /* --- ENTITY INHERITANCE --- */
-  virtual void display( std::ostream& os ) const;
+  virtual void display(std::ostream& os) const;
 
  protected:
-
   /// Integrate the freeflyer state (to obtain position).
   /// Compute roll pitch yaw angles
   void integrateRollPitchYaw(::dynamicgraph::Vector& state, const ::dynamicgraph::Vector& control, double dt);
   // Computes Euler angles in good range : [-pi:pi]x[-pi/2:pi/2]x[-pi:pi]
   void rotationMatrixToEuler(const Eigen::Matrix3d& rotationMatrix, Eigen::Vector3d& rollPitchYaw);
 
-}; // class SimpleStateIntegrator
+};  // class SimpleStateIntegrator
 
-}    // namespace talos_balance
-}    // namespace sot
-}    // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_simple_state_integrator_H__
+#endif  // #ifndef __sot_talos_balance_simple_state_integrator_H__

@@ -20,67 +20,57 @@
 #include <dynamic-graph/factory.h>
 #include <dynamic-graph/all-commands.h>
 
-namespace dynamicgraph
-{
-  namespace sot
-  {
-    namespace talos_balance
-    {
-      namespace dg = ::dynamicgraph;
-      using namespace dg;
-      using namespace dg::command;
+namespace dynamicgraph {
+namespace sot {
+namespace talos_balance {
+namespace dg = ::dynamicgraph;
+using namespace dg;
+using namespace dg::command;
 
-#define INPUT_SIGNALS     m_sinSIN
+#define INPUT_SIGNALS m_sinSIN
 
 #define OUTPUT_SIGNALS m_soutSOUT
 
-      /// Define EntityClassName here rather than in the header file
-      /// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
-      typedef BooleanIdentity EntityClassName;
+/// Define EntityClassName here rather than in the header file
+/// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
+typedef BooleanIdentity EntityClassName;
 
-      /* --- DG FACTORY ---------------------------------------------------- */
-      DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(BooleanIdentity,
-                                         "BooleanIdentity");
+/* --- DG FACTORY ---------------------------------------------------- */
+DYNAMICGRAPH_FACTORY_ENTITY_PLUGIN(BooleanIdentity, "BooleanIdentity");
 
-      /* ------------------------------------------------------------------- */
-      /* --- CONSTRUCTION -------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
-      BooleanIdentity::BooleanIdentity(const std::string& name)
-                      : Entity(name)
-                      , CONSTRUCT_SIGNAL_IN(sin,  bool)
-                      , CONSTRUCT_SIGNAL_OUT(sout, bool, INPUT_SIGNALS)
-      {
-        Entity::signalRegistration( INPUT_SIGNALS << OUTPUT_SIGNALS );
+/* ------------------------------------------------------------------- */
+/* --- CONSTRUCTION -------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+BooleanIdentity::BooleanIdentity(const std::string& name)
+    : Entity(name), CONSTRUCT_SIGNAL_IN(sin, bool), CONSTRUCT_SIGNAL_OUT(sout, bool, INPUT_SIGNALS) {
+  Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
 
-        /* Commands. */
-        addCommand("init", makeCommandVoid0(*this, &BooleanIdentity::init, docCommandVoid0("Initialize the entity.")));
-      }
+  /* Commands. */
+  addCommand("init", makeCommandVoid0(*this, &BooleanIdentity::init, docCommandVoid0("Initialize the entity.")));
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- SIGNALS ------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- SIGNALS ------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      DEFINE_SIGNAL_OUT_FUNCTION(sout,bool)
-      {
-        s = m_sinSIN(iter);
-        return s;
-      }
+DEFINE_SIGNAL_OUT_FUNCTION(sout, bool) {
+  s = m_sinSIN(iter);
+  return s;
+}
 
-      /* ------------------------------------------------------------------- */
-      /* --- ENTITY -------------------------------------------------------- */
-      /* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* --- ENTITY -------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 
-      void BooleanIdentity::display(std::ostream& os) const
-      {
-        os << "BooleanIdentity " << getName();
-//        try
-//        {
-//          getProfiler().report_all(3, os);
-//        }
-//        catch (ExceptionSignal e) {}
-      }
+void BooleanIdentity::display(std::ostream& os) const {
+  os << "BooleanIdentity " << getName();
+  //        try
+  //        {
+  //          getProfiler().report_all(3, os);
+  //        }
+  //        catch (ExceptionSignal e) {}
+}
 
-    } // namespace talos_balance
-  } // namespace sot
-} // namespace dynamicgraph
-
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph

@@ -21,16 +21,15 @@
 /* --- API ------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-#if defined (WIN32)
-#  if defined (simple_zmp_estimator_EXPORTS)
-#    define SIMPLEZMPESTIMATOR_EXPORT __declspec(dllexport)
-#  else
-#    define SIMPLEZMPESTIMATOR_EXPORT __declspec(dllimport)
-#  endif
+#if defined(WIN32)
+#if defined(simple_zmp_estimator_EXPORTS)
+#define SIMPLEZMPESTIMATOR_EXPORT __declspec(dllexport)
 #else
-#  define SIMPLEZMPESTIMATOR_EXPORT
+#define SIMPLEZMPESTIMATOR_EXPORT __declspec(dllimport)
 #endif
-
+#else
+#define SIMPLEZMPESTIMATOR_EXPORT
+#endif
 
 /* --------------------------------------------------------------------- */
 /* --- INCLUDE --------------------------------------------------------- */
@@ -43,56 +42,52 @@
 #include <dynamic-graph/linear-algebra.h>
 
 namespace dynamicgraph {
-  namespace sot {
-    namespace talos_balance {
+namespace sot {
+namespace talos_balance {
 
-      /* --------------------------------------------------------------------- */
-      /* --- CLASS ----------------------------------------------------------- */
-      /* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --- CLASS ----------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
-      class SIMPLEZMPESTIMATOR_EXPORT SimpleZmpEstimator
-                                      : public ::dynamicgraph::Entity
-      {
-        DYNAMIC_GRAPH_ENTITY_DECL();
+class SIMPLEZMPESTIMATOR_EXPORT SimpleZmpEstimator : public ::dynamicgraph::Entity {
+  DYNAMIC_GRAPH_ENTITY_DECL();
 
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        /* --- CONSTRUCTOR ---- */
-        SimpleZmpEstimator(const std::string & name, const double & eps=1.0);
+  /* --- CONSTRUCTOR ---- */
+  SimpleZmpEstimator(const std::string& name, const double& eps = 1.0);
 
-        void init();
+  void init();
 
-        /* --- SIGNALS --- */
-        DECLARE_SIGNAL_IN(wrenchLeft, dynamicgraph::Vector);
-        DECLARE_SIGNAL_IN(wrenchRight, dynamicgraph::Vector);
+  /* --- SIGNALS --- */
+  DECLARE_SIGNAL_IN(wrenchLeft, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(wrenchRight, dynamicgraph::Vector);
 
-        DECLARE_SIGNAL_IN(poseLeft, MatrixHomogeneous);
-        DECLARE_SIGNAL_IN(poseRight, MatrixHomogeneous);    
+  DECLARE_SIGNAL_IN(poseLeft, MatrixHomogeneous);
+  DECLARE_SIGNAL_IN(poseRight, MatrixHomogeneous);
 
-        DECLARE_SIGNAL_OUT(copLeft, dynamicgraph::Vector);
-        DECLARE_SIGNAL_OUT(copRight, dynamicgraph::Vector);
-        DECLARE_SIGNAL_OUT(zmp, dynamicgraph::Vector);
-        DECLARE_SIGNAL_OUT(emergencyStop, bool);
+  DECLARE_SIGNAL_OUT(copLeft, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(copRight, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(zmp, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(emergencyStop, bool);
 
-        double m_eps;
+  double m_eps;
 
-        /* --- COMMANDS --- */
-        /* --- ENTITY INHERITANCE --- */
-        virtual void display( std::ostream& os ) const;
+  /* --- COMMANDS --- */
+  /* --- ENTITY INHERITANCE --- */
+  virtual void display(std::ostream& os) const;
 
-        Eigen::Vector3d computeCoP(const dynamicgraph::Vector & wrench, const MatrixHomogeneous & pose) const;
+  Eigen::Vector3d computeCoP(const dynamicgraph::Vector& wrench, const MatrixHomogeneous& pose) const;
 
-      protected:
-        bool m_initSucceeded;    /// true if the entity has been successfully initialized
-        bool m_emergency_stop_triggered;
+ protected:
+  bool m_initSucceeded;  /// true if the entity has been successfully initialized
+  bool m_emergency_stop_triggered;
 
-      }; // class SimpleZmpEstimator
+};  // class SimpleZmpEstimator
 
-    }    // namespace talos_balance
-  }      // namespace sot
-}        // namespace dynamicgraph
+}  // namespace talos_balance
+}  // namespace sot
+}  // namespace dynamicgraph
 
-
-
-#endif // #ifndef __sot_talos_balance_simple_zmp_estimator_H__
+#endif  // #ifndef __sot_talos_balance_simple_zmp_estimator_H__
