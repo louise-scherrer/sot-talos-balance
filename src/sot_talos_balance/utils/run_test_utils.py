@@ -23,7 +23,7 @@ except NameError:
 runCommandClient = rospy.ServiceProxy('run_command', RunCommand)
 
 
-def runVerboseCommandClient(code, verbosity=1):
+def runVerboseCommandClient(code, verbosity=0):
     """
     Auxiliary function to manage the verbosity of runCommandClient
     verbosity = 0: simply execute runCommandClient
@@ -54,7 +54,7 @@ def evalCommandClient(code):
     return eval(runCommandClient(code).result)
 
 
-def launch_script(code, title, description="", verbosity=1):
+def launch_script(code, title, description="", verbosity=0):
     input(title + ':   ' + description)
     rospy.loginfo(title)
     rospy.loginfo(code)
@@ -79,7 +79,7 @@ def launch_script(code, title, description="", verbosity=1):
     rospy.loginfo("...done with " + title)
 
 
-def run_test(appli, verbosity=1):
+def run_test(appli, verbosity=0):
     try:
         rospy.loginfo("Waiting for run_command")
         rospy.wait_for_service('/run_command')
