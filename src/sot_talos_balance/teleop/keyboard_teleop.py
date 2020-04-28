@@ -44,28 +44,32 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import rospy
+from numpy import sign
 
 from geometry_msgs.msg import Twist
 
 import sys, select, termios, tty
 
 msg = """
-Make Pyrene walk around!
+Walk Pyrene around!
 ---------------------------
-Walking motion by maintaining the following keys pressed:
+Walking motion induces by pressing some of the following keys:
    u    i    o
    j    k    l
 
-No key pressed: no motion
-i,k: walking straight forward/backward
-j,l: walking on the left, right side respectively
-u, o: turning on itself towards anti-clockwise, clockwise respectively
+i,k: walking straight forward/backward (along the x axis in the simulation frame)
+j,l: walking on the left, right side respectively (y axis)
+u, o: turning on itself anti-clockwise, clockwise respectively (around z axis)
 
 Default speed: 0.1 m/s
 Increase/decrease speed by pressing:
-s,d: each key press brings the speed down/up by 0.1m/s respectively
+s,d: each key press brings any non-zero value of linear or angular speed down/up by 0.1m/s respectively
 
-Absolute speed bound: 0.2m/s
+Press 'Space' in order to stop the robot.
+
+Absolute speed bound implemented in the pattern generator: close 0.2m/s
+
+Speed vector in the form: (Vx, Vy, Vtheta). A null vector brings the robot to a stop.
 
 CTRL-C to quit the teleoperation
 """
@@ -98,9 +102,10 @@ def getKey():
 
 
 
-def vels(Vref):
-    to_print = "Currently Vref order is " + str(Vref)
-    return to_print
+def vels(Vx, Vy, Vtheta):
+    return "Currently the velocity order is (Vx, Vy, Vtheta)=%s" % ((Vx, Vy, Vtheta),)
+#    to_print = "Currently Vref order is " + str(Vref)
+#    return to_print
 
 if __name__=="__main__":
     settings = termios.tcgetattr(sys.stdin)
@@ -129,24 +134,30 @@ if __name__=="__main__":
 
     try:
         print(msg)
-        print(vels(Vref))
+        print(vels(Vx, Vy, Vtheta))
 
         while(1):
             key = getKey()
             if key in moveBindings.keys(): # dimension 3
-                Vx = moveBindings[key][0] # changer  pour un truc modulable a l'avanir avec integration variation vitesse
-                Vy = moveBindings[key][1]
-                Vtheta = moveBindings[key][2]
+                Vx = round(Vx + moveBindings[key][0],1) # changer  pour un truc modulable a l'avanir avec integration variation vitesse
+                Vy = round(Vy + moveBindings[key][1],1)
+                Vtheta = round(Vtheta + moveBindings[key][2],1)
                 count = 0
-            elif key in speedBindings.keys(): # pour l'instant j'oublie ca
-                Vx = Vx + speedBindings[key][0]
-                Vy = Vy + speedBindings[key][0]
-                Vtheta = Vtheta + speedBindings[key][0]
+                print(vels(Vx, Vy, Vtheta))
+            elif key in speedBindings.keys():
+                if Vx != 0.0 :
+                    Vx = round(Vx + sign(Vx)*speedBindings[key],1) # keeping speed values with 0.1 precision
+                if Vy != 0.0:
+                    Vy = round(Vy + sign(Vy)*speedBindings[key],1)
+                if Vtheta != 0.0:
+                    Vtheta = round(Vtheta + sign(Vtheta)*speedBindings[key],1)
 
 
 #                speed = speed * speedBindings[key][0] # enlever speed
  #               turn = turn * speedBindings[key][1] # enlever turn
                 count = 0
+
+                print(vels(Vx, Vy, Vtheta))
 
 #                print(vels(speed,turn))  # enlever speed et turn
                 if (status == 14):
@@ -160,11 +171,14 @@ if __name__=="__main__":
                 Vy = 0.0
                 Vtheta = 0.0
 
+                print(vels(Vx, Vy, Vtheta))
+
 
                 control_speed = 0
                 control_turn = 0
 
-                else: # si aucune entree au clavier, attendre 4 tours avant de stopper ou si Ctrl+C stopper le code
+            else:
+# si aucune entree au clavier, attendre 4 tours avant de stopper ou si CtrlC stopper le code
 #                count = count + 1 # essai enlever ca pour maintenir commande
 #                if count > 4:
 #                    x = 0
@@ -200,7 +214,7 @@ if __name__=="__main__":
 #            twist.angular.x = 0; twist.angular.y = 0; twist.angular.z = control_turn
             twist.angular.x = 0; twist.angular.y = 0; twist.angular.z = Vtheta
             pub.publish(twist)
-            print(vels(Vref))
+#            print(vels(Vref))
             sys.stdout.flush() # essai print sur une seule ligne
 
 # ligne deja commentees dans le code source, utile ?
