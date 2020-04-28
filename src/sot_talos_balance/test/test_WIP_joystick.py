@@ -38,7 +38,8 @@ from time import sleep
 #    rospy.Subscriber("teleop_order", Vector3, callback)
 ## FIN
 
-run_test('appli_WIP_joystick.py')
+#run_test('appli_WIP_joystick.py')
+run_test('appli_joystick_dcmZmpControl_file.py')
 
 run_ft_calibration('robot.ftc')
 
@@ -48,11 +49,12 @@ current_velocity_order = (0.0,0.0,0.0)
 def callback(data):
 #    print('appel callback, j ai compris ca comme donnee: ') # attention empeche de voire passer les 'wait before executing trajectory'
 #    print(data)
-    new_velocity_order = (data.linear.x, data.linear.y, data.linear.z)
+#    new_velocity_order = (data.linear.x, data.linear.y, data.linear.z)
+    new_velocity_order = (data.linear.x, data.linear.y, data.angular.z)
     global current_velocity_order
     if (new_velocity_order != current_velocity_order):
         current_velocity_order = new_velocity_order
-        to_send_order = "robot.pg.velocitydes.value = (" + str(data.linear.x) + "," + str(data.linear.y) + "," + str(data.linear.z) + ")"
+        to_send_order = "robot.pg.velocitydes.value = (" + str(data.linear.x) + "," + str(data.linear.y) + "," + str(data.angular.z) + ")"
         print(to_send_order)
         runCommandClient(to_send_order)
 
