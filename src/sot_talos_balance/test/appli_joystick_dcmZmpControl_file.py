@@ -201,7 +201,7 @@ robot.pg.parseCmd(':deleteallobstacles')
 robot.pg.parseCmd(':feedBackControl false')
 robot.pg.parseCmd(':useDynamicFilter true')
 
-robot.pg.velocitydes.value=(0.1,0.0,0.0) # DEFAULT VALUE (0.1,0.0,0.0)
+robot.pg.velocitydes.value=(0.0,0.0,0.0) # DEFAULT VALUE (0.1,0.0,0.0)
 
 # Ajout 24.03.20 -> pas la bonne fonction
 #dump_sot_sig(robot, robot.pg, 'waistattitudematrix', dt) # quel duration ? essai avec 0.1, 1., dt, 0.005
@@ -244,7 +244,8 @@ wp.omega.value = omega
 #plug(robot.pg.waistattitudeabsolute, robot.waistToMatrix.sin) # works
 #plug(robot.waistToMatrix.sout, wp.waist)# waistToMatrix sort une matrice de rotation, waist prend une matrixHomo en entree...
 # 22.04 after modifying pg.cpp, new way to try and connect the waist
-plug(robot.pg.waistattitudematrixabsolute, wp.waist)
+
+plug(robot.pg.waistattitudematrixabsolute, wp.waist) # New name for waistattitudematrix changed in pg.cpp in sot-pattern-generator
 
 #plug(robot.pg.waistattitudematrix, wp.waist)
 # fin
