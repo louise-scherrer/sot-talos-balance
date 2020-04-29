@@ -26,7 +26,7 @@ from dynamic_graph import * # for entity graph display
 #runCommandClient('test_folder = "' + test_folder + '"')
 ## END DIFFERENCE
 
-run_test('appli_joystick_dcmZmpControl_file.py')
+run_test('appli_dcmZmpControl_online.py')
 
 run_ft_calibration('robot.ftc')
 input("Wait before running the test")
