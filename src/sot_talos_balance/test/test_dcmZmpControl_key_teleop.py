@@ -1,4 +1,4 @@
-'''Test with keyboard teleoperation of Talos using script keyboard_teleop.py for keyboard control and appli_joystick_dcmZmpControl_file.py'''
+'''Test with keyboard teleoperation of Talos using script keyboard_teleop.py for keyboard control and appli_dcmZmpControl_online.py'''
 
 ## File adapted from appli_dcmZmpControl_file.py and appli_dcmZmpControl_online_ISA.py written by Isabelle Maroger
 
@@ -10,7 +10,7 @@ from geometry_msgs.msg import Twist
 from sot_talos_balance.utils.run_test_utils import *
 from time import sleep
 
-run_test('appli_joystick_dcmZmpControl_file.py')
+run_test('appli_dcmZmpControl_online.py')
 
 run_ft_calibration('robot.ftc')
 

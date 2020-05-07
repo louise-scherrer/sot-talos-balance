@@ -1,20 +1,11 @@
 #!/usr/bin/env python
 
-# March 2020
+# March 2020 LAAS-CNRS
 # Keyboard Teleoperation of Talos, pre-step to Joytick teleoperation
-# Meant to be launched with the test_joystick_dcmZmpControl_file.py
-# Based (strongly) on the turtlebot teleop key program
+# Meant to be launched with the test_dcmZmpControl_key_teleop.py
+
+# Based strongly on the turtlebot teleop key program
 #https://github.com/turtlebot/turtlebot/blob/melodic/turtlebot_teleop/scripts/turtlebot_teleop_key
-
-
-
-#Detect keyboard orders
-#Transform said orders in velocity command to the robot
-#Publish the order
-#robot.pg.velocitydes.value
-
-
-
 
 # Copyright (c) 2011, Willow Garage, Inc.
 # All rights reserved.
