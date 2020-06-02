@@ -22,6 +22,8 @@ input("Wait before running the test")
 # Connect ZMP reference and reset controllers
 print('Connect ZMP reference')
 runCommandClient('plug(robot.zmp_estimator.emergencyStop,robot.cm.emergencyStop_zmp)')
+#added 27.05
+runCommandClient('plug(robot.wrenchDistributor.emergencyStop,robot.cm.emergencyStop_distribute)')
 
 # added 20.05
 #runCommandClient('plug(robot.dcm_control.zmpRef,robot.com_admittance_control.zmpDes)')
@@ -31,8 +33,8 @@ runCommandClient('robot.com_admittance_control.setState(robot.wp.comDes.value,[0
 runCommandClient('robot.com_admittance_control.Kp.value = Kp_adm')
 
 # added 20.05
-runCommandClient('robot.leftAnkleController.gainsXY.value = [0.0,0.0]') # ou 0.1
-runCommandClient('robot.rightAnkleController.gainsXY.value = [0.0,0.0]')
+runCommandClient('robot.leftAnkleController.gainsXY.value = GainsXY') # ou 0.1
+runCommandClient('robot.rightAnkleController.gainsXY.value = GainsXY')
 
 runCommandClient('robot.dcm_control.resetDcmIntegralError()')
 runCommandClient('robot.dcm_control.Ki.value = Ki_dcm')

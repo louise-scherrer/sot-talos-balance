@@ -290,18 +290,22 @@ robot.com_admittance_control = com_admittance_control
 Kp_adm = [15.0, 15.0, 0.0]  # this value is employed later
 
 # --- Ankle admittance
+GainsXY = [0.0,0.0]
+
 # Left foot
-robot.leftAnkleController = create_ankle_admittance_controller([0, 0], robot, "left", "leftController") # 0 de base dans les simus, test valeurs Caron = 0.1
+robot.leftAnkleController = create_ankle_admittance_controller(GainsXY, robot, "left", "leftController") # 0 de base dans les simus, test valeurs Caron = 0.1
 
 # Right foot
-robot.rightAnkleController = create_ankle_admittance_controller([0, 0], robot, "right", "rightController")
+robot.rightAnkleController = create_ankle_admittance_controller(GainsXY, robot, "right", "rightController")
+
+GainsXY = [0.1,0.1] # value passed later in test -0.1 if controller opposite to usual diff value
 
 # --- Control Manager
 robot.cm = create_ctrl_manager(cm_conf, dt, robot_name='robot')
 robot.cm.addCtrlMode('sot_input')
 robot.cm.setCtrlMode('all', 'sot_input')
 robot.cm.addEmergencyStopSIN('zmp')
-## dans appli_.._distribute il y a aussi un emergency stop pour distribute
+robot.cm.addEmergencyStopSIN('distribute')
 
 # -------------------------- SOT CONTROL --------------------------
 
@@ -349,7 +353,7 @@ plug(robot.rightAnkleController.dRP, rightPitchSelec.sin)
 
 robot.rightAnklePitchTask = MetaTaskKineJoint(robot.dynamic, RightPitchJoint)
 robot.rightAnklePitchTask.featureDes.errorIN.value = [0.0]
-robot.rightAnklePitchTask.task.controlGain.value = 0
+robot.rightAnklePitchTask.task.controlGain.value = 0 # 0 by default
 robot.rightAnklePitchTask.task.setWithDerivative(True)
 plug(rightPitchSelec.sout, robot.rightAnklePitchTask.featureDes.errordotIN)
 
@@ -362,7 +366,7 @@ plug(robot.rightAnkleController.dRP, rightRollSelec.sin)
 
 robot.rightAnkleRollTask = MetaTaskKineJoint(robot.dynamic, RightRollJoint)
 robot.rightAnkleRollTask.featureDes.errorIN.value = [0.0]
-robot.rightAnkleRollTask.task.controlGain.value = 0
+robot.rightAnkleRollTask.task.controlGain.value = 0 # 0 by default
 robot.rightAnkleRollTask.task.setWithDerivative(True)
 plug(rightRollSelec.sout, robot.rightAnkleRollTask.featureDes.errordotIN)
 
@@ -375,7 +379,7 @@ plug(robot.leftAnkleController.dRP, leftPitchSelec.sin)
 
 robot.leftAnklePitchTask = MetaTaskKineJoint(robot.dynamic, LeftPitchJoint)
 robot.leftAnklePitchTask.featureDes.errorIN.value = [0.0]
-robot.leftAnklePitchTask.task.controlGain.value = 0
+robot.leftAnklePitchTask.task.controlGain.value = 0 # 0 by default
 robot.leftAnklePitchTask.task.setWithDerivative(True)
 plug(leftPitchSelec.sout, robot.leftAnklePitchTask.featureDes.errordotIN)
 
@@ -388,7 +392,7 @@ plug(robot.leftAnkleController.dRP, leftRollSelec.sin)
 
 robot.leftAnkleRollTask = MetaTaskKineJoint(robot.dynamic, LeftRollJoint)
 robot.leftAnkleRollTask.featureDes.errorIN.value = [0.0]
-robot.leftAnkleRollTask.task.controlGain.value = 0
+robot.leftAnkleRollTask.task.controlGain.value = 0 # 0 by default
 robot.leftAnkleRollTask.task.setWithDerivative(True)
 plug(leftRollSelec.sout, robot.leftAnkleRollTask.featureDes.errordotIN)
 # end added for ankle control by the SOT
@@ -400,12 +404,18 @@ robot.contactLF = MetaTaskKine6d('contactLF', robot.dynamic, 'LF', robot.Operati
 robot.contactLF.feature.frame('desired')
 robot.contactLF.gain.setConstant(300)
 plug(robot.wp.footLeftDes, robot.contactLF.featureDes.position)  #.errorIN?
+# added 30.05
+plug(robot.leftAnkleController.vDes, robot.contactLF.featureDes.velocity)
+# end added
 locals()['contactLF'] = robot.contactLF
 
 robot.contactRF = MetaTaskKine6d('contactRF', robot.dynamic, 'RF', robot.OperationalPointsMap['right-ankle'])
 robot.contactRF.feature.frame('desired')
 robot.contactRF.gain.setConstant(300)
 plug(robot.wp.footRightDes, robot.contactRF.featureDes.position)  #.errorIN?
+# added 30.05
+plug(robot.rightAnkleController.vDes, robot.contactRF.featureDes.velocity)
+# end added
 locals()['contactRF'] = robot.contactRF
 
 # --- COM height
@@ -418,7 +428,7 @@ robot.taskComH.feature.selec.value = '100'
 robot.taskCom = MetaTaskKineCom(robot.dynamic)
 plug(robot.com_admittance_control.comRef, robot.taskCom.featureDes.errorIN)
 plug(robot.com_admittance_control.dcomRef, robot.taskCom.featureDes.errordotIN)
-robot.taskCom.task.controlGain.value = 0
+robot.taskCom.task.controlGain.value = 0 # why 0? test with 10 as in appli_ankle_admittance -> no result
 robot.taskCom.task.setWithDerivative(True)
 robot.taskCom.feature.selec.value = '011'
 
@@ -491,17 +501,15 @@ robot.sot.push(robot.taskComH.task.name)
 robot.sot.push(robot.taskCom.task.name)
 
 # Ankle-related tasks
-robot.sot.push(robot.rightAnklePitchTask.task.name)
-robot.sot.push(robot.rightAnkleRollTask.task.name)
-robot.sot.push(robot.leftAnklePitchTask.task.name)
-robot.sot.push(robot.leftAnkleRollTask.task.name)
+#robot.sot.push(robot.rightAnklePitchTask.task.name)
+#robot.sot.push(robot.rightAnkleRollTask.task.name)
+#robot.sot.push(robot.leftAnklePitchTask.task.name)
+#robot.sot.push(robot.leftAnkleRollTask.task.name)
 #end
 
 robot.sot.push(robot.keepWaist.task.name)
 # robot.sot.push(robot.taskPos.name)
 # robot.device.control.recompute(0) # this crashes as it employs joint sensors which are not ready yet
-
-
 
 # --- Fix robot.dynamic inputs
 plug(robot.device.velocity, robot.dynamic.velocity)
@@ -545,10 +553,18 @@ create_topic(robot.publisher, robot.dcm_control, 'wrenchRef', robot=robot, data_
 create_topic(robot.publisher, robot.wrenchDistributor, 'wrenchLeft', robot=robot, data_type='vector')  # reference left wrench
 create_topic(robot.publisher, robot.wrenchDistributor, 'wrenchRight', robot=robot, data_type='vector')  # reference right wrench
 create_topic(robot.publisher, robot.wrenchDistributor, 'wrenchRef', robot=robot, data_type='vector')  # optimized reference wrench
+create_topic(robot.publisher, robot.wrenchDistributor, 'zmpRef', robot=robot, data_type='vector') # plugged to com_adm_ctrler
+
+create_topic(robot.publisher, robot.wp, 'phaseDes', robot=robot, data_type='int')
+
+create_topic(robot.publisher, robot.leftAnkleController, 'dRP', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.rightAnkleController, 'dRP', robot=robot, data_type='vector')
 
 
-#create_topic(robot.publisher, robot.device, 'forceLLEG', robot = robot, data_type='vector')               # measured left wrench
-#create_topic(robot.publisher, robot.device, 'forceRLEG', robot = robot, data_type='vector')               # measured right wrench
+
+
+create_topic(robot.publisher, robot.device, 'forceLLEG', robot = robot, data_type='vector')               # measured left wrench
+create_topic(robot.publisher, robot.device, 'forceRLEG', robot = robot, data_type='vector')               # measured right wrench
 
 #create_topic(robot.publisher, robot.device_filters.ft_LF_filter, 'x_filtered', robot = robot, data_type='vector') # filtered left wrench
 #create_topic(robot.publisher, robot.device_filters.ft_RF_filter, 'x_filtered', robot = robot, data_type='vector') # filtered right wrench
