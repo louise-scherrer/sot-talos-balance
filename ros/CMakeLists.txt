@@ -1,2 +1,2 @@
 INSTALL(DIRECTORY share/sot-talos-balance DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
-INSTALL(DIRECTORY lib/sot-talos-balance DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+INSTALL(PROGRAMS lib/sot-talos-balance/keyboard_teleop.py DESTINATION lib/sot-talos-balance)
