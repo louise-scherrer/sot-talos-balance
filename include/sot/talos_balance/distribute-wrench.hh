@@ -78,6 +78,12 @@ class DISTRIBUTE_WRENCH_EXPORT DistributeWrench : public ::dynamicgraph::Entity 
   DECLARE_SIGNAL_IN(wRatio, double);
   DECLARE_SIGNAL_IN(wAnkle, dynamicgraph::Vector);
 
+  DECLARE_SIGNAL_IN(zmpDes, dynamicgraph::Vector);//new
+  DECLARE_SIGNAL_IN(footLeftDes, MatrixHomogeneous); //new
+  DECLARE_SIGNAL_IN(footRightDes, MatrixHomogeneous); //new
+  DECLARE_SIGNAL_IN(comDes, dynamicgraph::Vector);//new
+
+  DECLARE_SIGNAL_INNER(left_foot_ratio, double); //new
   DECLARE_SIGNAL_INNER(kinematics_computations, int);
   DECLARE_SIGNAL_INNER(qp_computations, int);
 
@@ -93,12 +99,17 @@ class DISTRIBUTE_WRENCH_EXPORT DistributeWrench : public ::dynamicgraph::Entity 
   DECLARE_SIGNAL_OUT(wrenchRef, dynamicgraph::Vector);
   DECLARE_SIGNAL_OUT(zmpRef, dynamicgraph::Vector);
   DECLARE_SIGNAL_OUT(emergencyStop, bool);
+  DECLARE_SIGNAL_OUT(leftFootRatio, double); //new
+  DECLARE_SIGNAL_OUT(staticFeetForces, dynamicgraph::Vector); //new
+
 
  public:
   /* --- COMMANDS --- */
   /* --- ENTITY INHERITANCE --- */
   virtual void display(std::ostream& os) const;
 
+  Eigen::VectorXd computeStaticFeetForces(const Eigen::Vector3d& comRef,
+                                                const Eigen::Vector3d& LFPosition, const Eigen::Vector3d& RFPosition) const; //new
   Eigen::Vector3d computeCoP(const dynamicgraph::Vector& wrench, const pinocchio::SE3& pose) const;
 
   void set_right_foot_sizes(const dynamicgraph::Vector& s);

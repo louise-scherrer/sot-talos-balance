@@ -28,6 +28,9 @@
 #include <pinocchio/algorithm/kinematics.hpp>
 #include <pinocchio/algorithm/frames.hpp>
 
+#include <Eigen/Dense>
+#include <Eigen/SVD> // test
+
 namespace dynamicgraph {
 namespace sot {
 namespace talos_balance {
@@ -36,20 +39,22 @@ using namespace dg;
 using namespace dg::command;
 using namespace eiquadprog::solvers;
 
+using namespace Eigen;
+
 // Size to be aligned                                      "-------------------------------------------------------"
 #define PROFILE_DISTRIBUTE_WRENCH_KINEMATICS_COMPUTATIONS "DistributeWrench: kinematics computations              "
 #define PROFILE_DISTRIBUTE_WRENCH_QP_COMPUTATIONS "DistributeWrench: QP problem computations              "
 
 #define WEIGHT_SIGNALS m_wSumSIN << m_wNormSIN << m_wRatioSIN << m_wAnkleSIN
 
-#define INPUT_SIGNALS m_wrenchDesSIN << m_qSIN << m_rhoSIN << m_phaseSIN << m_frictionCoefficientSIN << WEIGHT_SIGNALS
+#define INPUT_SIGNALS m_wrenchDesSIN << m_qSIN << m_rhoSIN << m_phaseSIN << m_frictionCoefficientSIN << WEIGHT_SIGNALS << m_zmpDesSIN << m_footLeftDesSIN << m_footRightDesSIN << m_comDesSIN
 
-#define INNER_SIGNALS m_kinematics_computations << m_qp_computations
+#define INNER_SIGNALS m_left_foot_ratio << m_kinematics_computations << m_qp_computations
 
 #define OUTPUT_SIGNALS                                                                                        \
   m_wrenchLeftSOUT << m_ankleWrenchLeftSOUT << m_surfaceWrenchLeftSOUT << m_copLeftSOUT << m_wrenchRightSOUT  \
                    << m_ankleWrenchRightSOUT << m_surfaceWrenchRightSOUT << m_copRightSOUT << m_wrenchRefSOUT \
-                   << m_zmpRefSOUT << m_emergencyStopSOUT
+                   << m_zmpRefSOUT << m_emergencyStopSOUT << m_leftFootRatioSOUT << m_staticFeetForcesSOUT
 
 /// Define EntityClassName here rather than in the header file
 /// so that it can be used by the macros DEFINE_SIGNAL_**_FUNCTION.
@@ -71,11 +76,16 @@ DistributeWrench::DistributeWrench(const std::string& name)
       CONSTRUCT_SIGNAL_IN(wSum, double),
       CONSTRUCT_SIGNAL_IN(wNorm, double),
       CONSTRUCT_SIGNAL_IN(wRatio, double),
-      CONSTRUCT_SIGNAL_IN(wAnkle, dynamicgraph::Vector),
+      CONSTRUCT_SIGNAL_IN(wAnkle, dynamicgraph::Vector),      
+      CONSTRUCT_SIGNAL_IN(zmpDes, dynamicgraph::Vector),//new
+      CONSTRUCT_SIGNAL_IN(footLeftDes, MatrixHomogeneous), //new
+      CONSTRUCT_SIGNAL_IN(footRightDes, MatrixHomogeneous), //new
+      CONSTRUCT_SIGNAL_IN(comDes, dynamicgraph::Vector), //new
+      CONSTRUCT_SIGNAL_INNER(left_foot_ratio, double, m_zmpDesSIN << m_footLeftDesSIN << m_footRightDesSIN), //new
       CONSTRUCT_SIGNAL_INNER(kinematics_computations, int, m_qSIN),
       CONSTRUCT_SIGNAL_INNER(
           qp_computations, int,
-          m_wrenchDesSIN << m_rhoSIN << m_phaseSIN << WEIGHT_SIGNALS << m_kinematics_computationsSINNER),
+          m_wrenchDesSIN << m_left_foot_ratioSINNER << m_phaseSIN << WEIGHT_SIGNALS << m_kinematics_computationsSINNER), // m_left_foot_ratioSINNER replaces m_rhoSIN
       CONSTRUCT_SIGNAL_OUT(wrenchLeft, dynamicgraph::Vector, m_qp_computationsSINNER),
       CONSTRUCT_SIGNAL_OUT(ankleWrenchLeft, dynamicgraph::Vector, m_wrenchLeftSOUT),
       CONSTRUCT_SIGNAL_OUT(surfaceWrenchLeft, dynamicgraph::Vector, m_wrenchLeftSOUT),
@@ -87,6 +97,8 @@ DistributeWrench::DistributeWrench(const std::string& name)
       CONSTRUCT_SIGNAL_OUT(wrenchRef, dynamicgraph::Vector, m_wrenchLeftSOUT << m_wrenchRightSOUT),
       CONSTRUCT_SIGNAL_OUT(zmpRef, dynamicgraph::Vector, m_wrenchRefSOUT),
       CONSTRUCT_SIGNAL_OUT(emergencyStop, bool, m_zmpRefSOUT),
+      CONSTRUCT_SIGNAL_OUT(leftFootRatio, double, m_left_foot_ratioSINNER), //new
+      CONSTRUCT_SIGNAL_OUT(staticFeetForces, dynamicgraph::Vector, m_comDesSIN << m_footLeftDesSIN << m_footRightDesSIN), //new
       m_initSucceeded(false),
       m_model(),
       m_data(pinocchio::Model()),
@@ -192,6 +204,47 @@ void DistributeWrench::computeWrenchFaceMatrix(const double mu) {
       -mu, +1;
 }
 
+// Test 07.06: for static position, new formulation of wrench distrib following static equations, Newton and Euler
+Eigen::VectorXd DistributeWrench::computeStaticFeetForces(const Eigen::Vector3d& comRef,
+                                              const Eigen::Vector3d& LFPosition, const Eigen::Vector3d& RFPosition) const {
+  // Linear Least Square problem, Eigen function bdcSvd
+  // #include <Eigen/Dense> NEEDED ??
+  Eigen::MatrixXd A(6,6);
+  Eigen::VectorXd b;
+  b.resize(6);
+
+  const double pLFx = LFPosition[0];
+  const double pLFy = LFPosition[1];
+  const double pLFz = LFPosition[2];
+  const double pRFx = RFPosition[0];
+  const double pRFy = RFPosition[1];
+  const double pRFz = RFPosition[2];
+
+  const double g = 9.81;
+  const double m = 90.2722; // taken from m_RobotData->mass[0] total weight of model from pg.cpp
+
+  //std::cout << "m_data.mass[0] = " << m_data.mass[0] << std::endl; // returns -1 WHY?!
+
+  // Two equations to solve: mg = F_RightFoot + F_LeftFoot (3 first rows) and -mc x g = pRF x F_RightFoot + pLF x F_LeftFoot
+  A << 1, 0, 0, 1, 0, 0,
+          0, 1, 0, 0, 1, 0,
+          0, 0, 1, 0, 0, 1,
+          0, pLFz, -pLFy, 0, pRFz, -pRFy,
+          -pLFz, 0, pLFx, -pRFz, 0, pRFx,
+          pLFy, -pLFx, 0, pRFy, -pRFx, 0;
+  b << 0, 0, m*g, m*g*comRef[1], -m*g*comRef[0], 0;
+
+  Eigen::VectorXd result;
+  result.resize(6);
+  result= A.bdcSvd(ComputeThinU | ComputeThinV).solve(b);
+  //JacobiSVD<MatrixXd> svd(A, ComputeThinU | ComputeThinV);
+  //result = svd.solve(b);
+  return result; // order LFx,y,z,RFx,y,z
+
+  // , et après quoi ? remplacer la troisieme contrainte avec ? ||ecart fLF wleft|| + ||ecart fRF wright|| ? ||flf.wright - frf.wleft|| ?
+}
+
+
 Eigen::Vector3d DistributeWrench::computeCoP(const dg::Vector& wrenchGlobal, const pinocchio::SE3& pose) const {
   const pinocchio::Force::Vector6& wrench = pose.actInv(pinocchio::Force(wrenchGlobal)).toVector();
 
@@ -227,6 +280,41 @@ Eigen::Vector3d DistributeWrench::computeCoP(const dg::Vector& wrenchGlobal, con
 /* ------------------------------------------------------------------- */
 /* --- SIGNALS ------------------------------------------------------- */
 /* ------------------------------------------------------------------- */
+
+DEFINE_SIGNAL_INNER_FUNCTION(left_foot_ratio, double){ // all new
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal left_foot_ratio before initialization!");
+    return s;
+  }
+
+  // Calculer normes ||ZMP - RF||2 et ||LF-RF||2 -> .squaredNorm()
+  // value 1 when standing on LF, 0 when on RF, 0.5 when middle of DSP = equal repartition of weight on both feet
+
+  const MatrixHomogeneous& LeftFootPose = m_footLeftDesSIN(iter);
+  const MatrixHomogeneous& RightFootPose = m_footRightDesSIN(iter);
+  const Vector& ZmpPosition = m_zmpDesSIN(iter);
+
+  const Eigen::Vector2d rf = LeftFootPose.translation().head<2>(); // Keeping only values along x and y
+  const Eigen::Vector2d lf = RightFootPose.translation().head<2>();
+  const Eigen::Vector2d zmp = ZmpPosition.head<2>();
+
+  double dist_zmp_rf = std::sqrt((zmp-rf).squaredNorm());
+  double dist_rf_lf = std::sqrt((lf - rf).squaredNorm());
+
+
+  s = 1.0 - dist_zmp_rf / dist_rf_lf;
+  // Clamp ratio inside [0.0,1.0]
+  if(s > 1.0)
+  {
+    s = 1.0;
+  }
+  else if(s < 0.0)
+  {
+    s = 0.0;
+  }
+  return s;
+}
+
 
 DEFINE_SIGNAL_INNER_FUNCTION(kinematics_computations, int) {
   if (!m_initSucceeded) {
@@ -393,7 +481,8 @@ DEFINE_SIGNAL_INNER_FUNCTION(qp_computations, int) {
   getProfiler().start(PROFILE_DISTRIBUTE_WRENCH_QP_COMPUTATIONS);
 
   if (phase == 0) {
-    const double& rho = m_rhoSIN(iter);
+    //const double& rho = m_rhoSIN(iter);
+    const double& rho = m_left_foot_ratioSINNER(iter); //25.06 new rho formulation according to S.Caron
 
     m_wSum = m_wSumSIN(iter);      // 10000.0
     m_wNorm = m_wNormSIN(iter);    // 10.0
@@ -596,6 +685,37 @@ DEFINE_SIGNAL_OUT_FUNCTION(emergencyStop, bool) {
   const dynamicgraph::Vector& zmp = m_zmpRefSOUT(iter);  // dummy to trigger zmp computation
   (void)zmp;                                             // disable unused variable warning
   s = m_emergency_stop_triggered;
+  return s;
+}
+
+DEFINE_SIGNAL_OUT_FUNCTION(leftFootRatio, double) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal phaseDes before initialization!");
+    return s;
+  }
+
+  s = m_left_foot_ratioSINNER(iter);
+  return s;
+}
+
+DEFINE_SIGNAL_OUT_FUNCTION(staticFeetForces, dynamicgraph::Vector) {
+  if (!m_initSucceeded) {
+    SEND_WARNING_STREAM_MSG("Cannot compute signal StatisFeetForces before initialization!");
+    return s;
+  }
+  if (s.size() != 6) s.resize(6);
+
+  const Eigen::Vector3d& comRef = m_comDesSIN(iter);
+  const Eigen::Vector3d& LFPosition =  m_footLeftDesSIN(iter).translation();
+  const Eigen::Vector3d& RFPosition =  m_footRightDesSIN(iter).translation();
+
+  if (m_emergency_stop_triggered) {
+    s.setZero(6);
+    return s;
+  }
+
+  s = computeStaticFeetForces(comRef, LFPosition, RFPosition);
+
   return s;
 }
 
