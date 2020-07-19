@@ -252,7 +252,7 @@ def create_hip_flexibility_compensation(robot, conf, robot_name='robot'):
     return hipComp
 
 
-def create_ankle_admittance_controller(gains, robot, side, name):
+def create_ankle_admittance_controller(gains, robot, side, name, dt): # dt added 22.06
     controller = AnkleAdmittanceController(name)
 
     # Filter and plug the force from force calibrator
@@ -266,12 +266,16 @@ def create_ankle_admittance_controller(gains, robot, side, name):
     controller.gainsXY.value = gains
     if side == "right":
         plug(robot.wrenchDistributor.copRight, controller.pRef)
+        #controller.pRef.value = robot.wrenchDistributor.copRight.value # test
+        plug(robot.wp.footRightDes, controller.footRef) #added 22.06
     elif side == "left":
         plug(robot.wrenchDistributor.copLeft, controller.pRef)
+        #controller.pRef.value = robot.wrenchDistributor.copLeft.value # test
+        plug(robot.wp.footLeftDes, controller.footRef) #added
     else:
         print('Error in create_ankle_admittance_controller : side unknown')
 
-    controller.init()
+    controller.init(dt)
 
     return controller
 

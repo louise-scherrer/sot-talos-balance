@@ -39,6 +39,10 @@
 #include <map>
 #include "boost/assign.hpp"
 
+// why these two
+#include <sot/core/matrix-geometry.hh>
+#include <dynamic-graph/linear-algebra.h>
+
 namespace dynamicgraph {
 namespace sot {
 namespace talos_balance {
@@ -56,15 +60,18 @@ class ANKLEADMITTANCECONTROLLER_EXPORT AnkleAdmittanceController : public ::dyna
   /* --- CONSTRUCTOR ---- */
   AnkleAdmittanceController(const std::string& name);
 
-  void init();
+  void init(const double& dt); // new
+  void setState(const Eigen::Matrix4d &); //new
 
   /* --- SIGNALS --- */
   DECLARE_SIGNAL_IN(gainsXY, dynamicgraph::Vector);
   DECLARE_SIGNAL_IN(wrench, dynamicgraph::Vector);
   DECLARE_SIGNAL_IN(pRef, dynamicgraph::Vector);
+  DECLARE_SIGNAL_IN(footRef, MatrixHomogeneous); //new
 
   DECLARE_SIGNAL_OUT(dRP, dynamicgraph::Vector);
   DECLARE_SIGNAL_OUT(vDes, dynamicgraph::Vector);
+  DECLARE_SIGNAL_OUT(poseDes, MatrixHomogeneous); //new REMETTRE MATRIX homo
 
   /* --- COMMANDS --- */
   /* --- ENTITY INHERITANCE --- */
@@ -72,6 +79,8 @@ class ANKLEADMITTANCECONTROLLER_EXPORT AnkleAdmittanceController : public ::dyna
 
  protected:
   bool m_initSucceeded;  /// true if the entity has been successfully initialized
+  double m_dt; //new
+  MatrixHomogeneous m_footDes; //new
 
 };  // class AnkleAdmittanceController
 
