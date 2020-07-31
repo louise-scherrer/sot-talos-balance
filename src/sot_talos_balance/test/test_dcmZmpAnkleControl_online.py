@@ -15,19 +15,39 @@ input("Wait before running the test")
 # Connect ZMP reference and reset controllers
 print('Connect ZMP reference')
 runCommandClient('plug(robot.zmp_estimator.emergencyStop,robot.cm.emergencyStop_zmp)')
-runCommandClient('plug(robot.wrenchDistributor.emergencyStop,robot.cm.emergencyStop_distribute)')
+#runCommandClient('plug(robot.wrenchDistributor.emergencyStop,robot.cm.emergencyStop_distribute)')
 
-runCommandClient('plug(robot.dcm_control.zmpRef,robot.com_admittance_control.zmpDes)')
-runCommandClient('plug(robot.wrenchDistributor.zmpRef,robot.com_admittance_control.zmpDes)')
+#runCommandClient('plug(robot.dcm_control.zmpRef,robot.com_admittance_control.zmpDes)')
+
+#runCommandClient('plug(robot.wrenchDistributor.zmpRef,robot.com_admittance_control.zmpDes)')
+# 26.06 test
+runCommandClient('plug(robot.dcm_control.zmpRef,robot.wrenchDistributor.zmpDes)')
+#runCommandClient('plug(robot.wp.zmpDes,robot.wrenchDistributor.zmpDes)')
 
 runCommandClient('robot.com_admittance_control.setState(robot.wp.comDes.value,[0.0,0.0,0.0])')
 runCommandClient('robot.com_admittance_control.Kp.value = Kp_adm')
 
-runCommandClient('robot.leftAnkleController.gainsXY.value = GainsXY') # ou 0.1
-runCommandClient('robot.rightAnkleController.gainsXY.value = GainsXY')
-
+#24.07 test ici
 runCommandClient('robot.dcm_control.resetDcmIntegralError()')
 runCommandClient('robot.dcm_control.Ki.value = Ki_dcm')
+# fin test
+
+sleep(4.0)
+
+runCommandClient('robot.leftAnkleController.setState(robot.wp.footLeftDes.value)') # new
+runCommandClient('robot.rightAnkleController.setState(robot.wp.footRightDes.value)') # new
+runCommandClient('robot.rightAnkleController.gainsXY.value = GainsXY')
+runCommandClient('robot.leftAnkleController.gainsXY.value = GainsXY') # ou 0.1
+
+# test remonter ca 24.07
+#runCommandClient('robot.dcm_control.resetDcmIntegralError()')
+#runCommandClient('robot.dcm_control.Ki.value = Ki_dcm')
+
+#test
+#runCommandClient('plug(robot.wrenchDistributor.copRight, controller.pRef)')
+#runCommandClient('plug(robot.wrenchDistributor.copLeft, controller.pRef)')
+
+
 
 c = ask_for_confirmation('Execute trajectory?')
 if c:

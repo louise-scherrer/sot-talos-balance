@@ -138,12 +138,12 @@ DEFINE_SIGNAL_OUT_FUNCTION(vDes, dynamicgraph::Vector) {
   s.segment<2>(3) = dRP;
   s[5] = 0;
 
-  //test clamp speed 17.07
-  //if (s[3] <= -0.2) s[3] = -0.2;
-  //if (s[3] >= 0.2) s[3] = 0.2;
+  //test clamp speed 17.07 0.2 limit
+  if (s[3] <= -0.1) s[3] = -0.1;
+  if (s[3] >= 0.1) s[3] = 0.1;
 
-  //if (s[4] <= -0.2) s[4] = -0.2;
-  //if (s[4] >= 0.2) s[4] = 0.2;
+  if (s[4] <= -0.1) s[4] = -0.1;
+  if (s[4] >= 0.1) s[4] = 0.1;
 
   return s;
 }
