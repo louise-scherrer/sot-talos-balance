@@ -48,7 +48,11 @@ g = 9.81
 omega = sqrt(g / h)
 
 # --- Parameter server
-robot.param_server = create_parameter_server(param_server_conf, dt)
+
+#Parameter server test, modified for Noelie, 31.07
+#robot.param_server = create_parameter_server(param_server_conf, dt)
+#replace by
+fill_parameter_server(robot.param_server,param_server_conf, dt)
 
 # --- Initial feet and waist
 robot.dynamic.createOpPoint('LF', robot.OperationalPointsMap['left-ankle'])
@@ -65,7 +69,9 @@ rospack = RosPack()
 robot.pg = PatternGenerator('pg')
 
 talos_data_folder = rospack.get_path('talos_data')
-robot.pg.setURDFpath(talos_data_folder+'/urdf/talos_reduced_wpg.urdf')
+
+#Parameter server test, replaced ubove
+#robot.pg.setURDFpath(talos_data_folder+'/urdf/talos_reduced_wpg.urdf')
 robot.pg.setSRDFpath(talos_data_folder+'/srdf/talos_wpg.srdf')
 
 robot.pg.buildModel()
@@ -278,7 +284,7 @@ robot.leftAnkleController = create_ankle_admittance_controller(GainsXY, robot, "
 robot.rightAnkleController = create_ankle_admittance_controller(GainsXY, robot, "right", "rightController", dt)
 
 
-GainsXY = [0.001,0.001] # value passed later in test -0.1 if controller opposite to usual diff value
+GainsXY = [0.01,0.01] # value passed later in test -0.1 if controller opposite to usual diff value
 # largest stable value 0.001 on SSP, 0.007 DSP
 
 #test 02.07 fournir CoP mesuré
@@ -471,6 +477,8 @@ create_topic(robot.publisher, robot.wp, 'phaseDes', robot=robot, data_type='int'
 
 create_topic(robot.publisher, robot.leftAnkleController, 'dRP', robot=robot, data_type='vector')
 create_topic(robot.publisher, robot.rightAnkleController, 'dRP', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.leftAnkleController, 'vDes', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.rightAnkleController, 'vDes', robot=robot, data_type='vector')
 create_topic(robot.publisher, robot.leftAnkleController, 'poseDes', robot=robot, data_type='matrixHomo') # remettre matrix homo
 create_topic(robot.publisher, robot.rightAnkleController, 'poseDes', robot=robot, data_type='matrixHomo') # remettre matrix homo
 create_topic(robot.publisher, robot.LeftFootDesAnkleCtrler, 'sout', robot=robot, data_type='vector')
