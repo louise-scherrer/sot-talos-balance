@@ -204,11 +204,10 @@ void DistributeWrench::computeWrenchFaceMatrix(const double mu) {
       -mu, +1;
 }
 
-// Test 07.06: for static position, new formulation of wrench distrib following static equations, Newton and Euler
+// Test 07.06: for static position, new formulation of wrench distrib following static equations, Newton and Euler. Signal only meaningful in static DSP
 Eigen::VectorXd DistributeWrench::computeStaticFeetForces(const Eigen::Vector3d& comRef,
                                               const Eigen::Vector3d& LFPosition, const Eigen::Vector3d& RFPosition) const {
   // Linear Least Square problem, Eigen function bdcSvd
-  // #include <Eigen/Dense> NEEDED ??
   Eigen::MatrixXd A(6,6);
   Eigen::VectorXd b;
   b.resize(6);
@@ -223,8 +222,6 @@ Eigen::VectorXd DistributeWrench::computeStaticFeetForces(const Eigen::Vector3d&
   const double g = 9.81;
   const double m = 90.2722; // taken from m_RobotData->mass[0] total weight of model from pg.cpp
 
-  //std::cout << "m_data.mass[0] = " << m_data.mass[0] << std::endl; // returns -1 WHY?!
-
   // Two equations to solve: mg = F_RightFoot + F_LeftFoot (3 first rows) and -mc x g = pRF x F_RightFoot + pLF x F_LeftFoot
   A << 1, 0, 0, 1, 0, 0,
           0, 1, 0, 0, 1, 0,
@@ -237,11 +234,7 @@ Eigen::VectorXd DistributeWrench::computeStaticFeetForces(const Eigen::Vector3d&
   Eigen::VectorXd result;
   result.resize(6);
   result= A.bdcSvd(ComputeThinU | ComputeThinV).solve(b);
-  //JacobiSVD<MatrixXd> svd(A, ComputeThinU | ComputeThinV);
-  //result = svd.solve(b);
-  return result; // order LFx,y,z,RFx,y,z
-
-  // , et après quoi ? remplacer la troisieme contrainte avec ? ||ecart fLF wleft|| + ||ecart fRF wright|| ? ||flf.wright - frf.wleft|| ?
+  return result; // order of forces: LFx,y,z,RFx,y,z
 }
 
 
@@ -287,7 +280,6 @@ DEFINE_SIGNAL_INNER_FUNCTION(left_foot_ratio, double){ // all new
     return s;
   }
 
-  // Calculer normes ||ZMP - RF||2 et ||LF-RF||2 -> .squaredNorm()
   // value 1 when standing on LF, 0 when on RF, 0.5 when middle of DSP = equal repartition of weight on both feet
 
   const MatrixHomogeneous& LeftFootPose = m_footLeftDesSIN(iter);

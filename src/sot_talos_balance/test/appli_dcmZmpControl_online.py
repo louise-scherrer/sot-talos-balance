@@ -175,6 +175,11 @@ robot.ftc = create_ft_calibrator(robot, ft_conf)
 zmp_estimator = SimpleZmpEstimator("zmpEst")
 robot.rdynamic.createOpPoint('sole_LF', 'left_sole_link')
 robot.rdynamic.createOpPoint('sole_RF', 'right_sole_link')
+
+#test 31.07
+robot.rdynamic.createOpPoint('ankle_LF', 'leg_left_6_link')
+robot.rdynamic.createOpPoint('ankle_RF', 'leg_right_6_link')
+
 plug(robot.rdynamic.sole_LF, zmp_estimator.poseLeft)
 plug(robot.rdynamic.sole_RF, zmp_estimator.poseRight)
 plug(robot.ftc.left_foot_force_out, zmp_estimator.wrenchLeft)
@@ -342,6 +347,44 @@ create_topic(robot.publisher, robot.pg, 'leftfootref', robot = robot, data_type 
 create_topic(robot.publisher, robot.wp, 'footLeft', robot = robot, data_type ='matrixHomo')
 create_topic(robot.publisher, robot.pg, 'rightfootref', robot = robot, data_type ='matrixHomo')
 create_topic(robot.publisher, robot.wp, 'footRight', robot = robot, data_type ='matrixHomo')
+
+create_topic(robot.publisher, robot.pg, 'SupportFoot', robot = robot, data_type ='unsigned') # type uint
+create_topic(robot.publisher, robot.pg, 'leftfootcontact', robot = robot, data_type ='boolean') # type bool
+create_topic(robot.publisher, robot.pg, 'rightfootcontact', robot = robot, data_type ='boolean')
+create_topic(robot.publisher, robot.pg, 'phase', robot = robot, data_type ='int')
+
+create_topic(robot.publisher, robot.wp, 'zmpDes', robot = robot, data_type ='vector')
+create_topic(robot.publisher, robot.pg, 'zmpref', robot = robot, data_type='vector')
+
+create_topic(robot.publisher, robot.dynamic, 'LF', robot=robot, data_type='matrixHomo')  # left foot
+create_topic(robot.publisher, robot.dynamic, 'RF', robot=robot, data_type='matrixHomo')  # right foot
+create_topic(robot.publisher, robot.dynamic, 'com', robot = robot, data_type='vector')
+
+create_topic(robot.publisher, robot.device, 'state', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.base_estimator, 'q', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.pg, 'contactphase', robot=robot, data_type='int')
+create_topic(robot.publisher, robot.triggerPG, 'sin', robot=robot, data_type='int')
+create_topic(robot.publisher, robot.pg, 'velocitydes', robot=robot, data_type='vector')
+
+create_topic(robot.publisher, robot.zmp_estimator, 'poseLeft', robot=robot, data_type='matrixHomo') # produced by real_dynamics
+create_topic(robot.publisher, robot.zmp_estimator, 'poseRight', robot=robot, data_type='matrixHomo')
+
+create_topic(robot.publisher, robot.rdynamic, 'ankle_LF', robot=robot, data_type='matrixHomo')
+create_topic(robot.publisher, robot.rdynamic, 'ankle_RF', robot=robot, data_type='matrixHomo')
+
+create_topic(robot.publisher, robot.cdc_estimator, 'c', robot=robot, data_type='vector') # estimated/measured CoM
+create_topic(robot.publisher, robot.com_admittance_control, 'comRef', robot=robot, data_type='vector')# new CoM ref
+
+create_topic(robot.publisher, robot.zmp_estimator, 'zmp', robot=robot, data_type='vector') # estimated/measured ZMP
+create_topic(robot.publisher, robot.dcm_control, 'zmpRef', robot=robot, data_type='vector') # new reference
+
+create_topic(robot.publisher, robot.estimator, 'dcm', robot=robot, data_type='vector') #estimated/measured DCM
+create_topic(robot.publisher, robot.wp, 'dcmDes', robot=robot, data_type='vector')# reference DCM from PG
+
+create_topic(robot.publisher, robot.device, 'forceLLEG', robot = robot, data_type='vector')               # measured left wrench
+create_topic(robot.publisher, robot.device, 'forceRLEG', robot = robot, data_type='vector')               # measured right wrench
+create_topic(robot.publisher, robot.ftc, 'left_foot_force_out', robot=robot, data_type='vector')  # calibrated left wrench
+create_topic(robot.publisher, robot.ftc, 'right_foot_force_out', robot=robot, data_type='vector')  # calibrated right wrench
 
 ## --- TRACER
 robot.tracer = TracerRealTime("com_tracer")

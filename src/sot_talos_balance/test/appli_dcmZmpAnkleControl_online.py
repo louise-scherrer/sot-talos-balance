@@ -1,7 +1,6 @@
 # flake8: noqa
 
-# Simulation to produce online walking movements for Talos based on a reference velocity order.
-# File adapted from appli_dcmZmpControl_file.py and appli_dcmZmpControl_online_ISA.py written by Isabelle Maroger
+# Try to implement the wrench distribution and ankle admittance controller of Stephane Caron into the dcmZmpControl_online simulation - June 2020
 
 import sys
 
@@ -40,8 +39,8 @@ dt = robot.timeStep
 robot_name = 'robot'
 robot.dynamic.com.recompute(0)
 robotDim = robot.dynamic.getDimension()
-#mass = robot.dynamic.data.mass[0]
-mass = 90.2722
+mass = robot.dynamic.data.mass[0]
+#mass = 90.2722: when models inconsistent between WPG and simu (different urdf), this is the PG's robot weight
 
 h = robot.dynamic.com.value[2]
 g = 9.81
@@ -127,7 +126,7 @@ plug(robot.pg.comref, wp.com)
 plug(robot.pg.dcomref, wp.vcom)
 plug(robot.pg.ddcomref, wp.acom)
 plug(robot.pg.contactphase, wp.phase) # for ankle admittance controller
-# rho set to constant for now in ankle controller
+# rho set to constant for now in ankle controller, not used anymore with implementation of LeftFootRatio output signal in entity distribute-wrench
 wp.rho.value = 0.5
 
 robot.wp = wp
@@ -229,21 +228,14 @@ plug(robot.dcm_control.wrenchRef, distribute.wrenchDes)
 plug(robot.wp.rhoDes, distribute.rho)
 plug(robot.wp.phaseDes, distribute.phase)
 
-# Test 08.07
 plug(robot.wp.comDes, distribute.comDes)
 
 # Adding Foot signals and ZMP Des for left foot ratio computation (new rho formulation)
 plug(robot.wp.footLeftDes, distribute.footLeftDes)
 plug(robot.wp.footRightDes, distribute.footRightDes)
-# Trying with PG value of ZMP traj, should be dcm_controller.zmpRef
-#plug(robot.wp.zmpDes, distribute.zmpDes)
-
-#plug(robot.dcm_control.zmpRef, distribute.zmpDes)
-#test 26.06
 distribute.zmpDes.value = robot.wp.zmpDes.value # should later be plugged to dcm_controller
 
 distribute.init(robot_name)
-#robot.distribute = distribute
 robot.wrenchDistributor = distribute # required by create_ankle_admittance_controller
 
 
@@ -254,7 +246,7 @@ com_admittance_control = ComAdmittanceController("comAdmCtrl")
 com_admittance_control.Kp.value = Kp_adm
 plug(robot.zmp_estimator.zmp, com_admittance_control.zmp)
 #com_admittance_control.zmpDes.value = robot.wp.zmpDes.value  # should be plugged to robot.dcm_control.zmpRef
-# test 26.06: direct plug
+
 plug(robot.wrenchDistributor.zmpRef, com_admittance_control.zmpDes) # direct plug
 
 plug(robot.wp.acomDes, com_admittance_control.ddcomDes)
@@ -270,20 +262,14 @@ Kp_adm = [15.0, 15.0, 0.0]  # this value is employed later
 GainsXY = [0.0,0.0]
 
 # Left foot
-#pRefLeft = robot.wrenchDistributor.copLeft.value #test
 robot.leftAnkleController = create_ankle_admittance_controller(GainsXY, robot, "left", "leftController", dt) # 0 de base dans les simus, test valeurs Caron = 0.1
 
 # Right foot
-#pRefRight = robot.wrenchDistributor.copRight.value #test
 robot.rightAnkleController = create_ankle_admittance_controller(GainsXY, robot, "right", "rightController", dt)
 
 
-GainsXY = [0.001,0.001] # value passed later in test -0.1 if controller opposite to usual diff value
-# largest stable value 0.001 on SSP, 0.007 DSP
-
-#test 02.07 fournir CoP mesuré
-#robot.rightAnkleController.pRef.value = [-0.025,0.018,0.0]
-#robot.leftAnkleController.pRef.value = [-0.007,0.018,0.0]
+GainsXY = [0.01,0.01] # value passed later in test -0.1 if controller opposite to usual diff value
+# largest stable value 0.001 on SSP, 0.007 DSP as of July 2020, model issue not solved
 
 # --- Control Manager
 robot.cm = create_ctrl_manager(cm_conf, dt, robot_name='robot')
@@ -330,32 +316,14 @@ plug(robot.dynamic.position, robot.taskUpperBody.feature.state)
 #define contactLF and contactRF
 robot.contactLF = MetaTaskKine6d('contactLF', robot.dynamic, 'LF', robot.OperationalPointsMap['left-ankle'])
 robot.contactLF.feature.frame('desired')
-robot.contactLF.gain.setConstant(300) # 300 normally
-#robot.contactLF.task.controlGain.value = 0
-# before
-#plug(robot.wp.footLeftDes, robot.contactLF.featureDes.position)  #.errorIN?
-# added 30.05
-#plug(robot.leftAnkleController.vDes, robot.contactLF.featureDes.velocity)
-# end added
-
-#after
+robot.contactLF.gain.setConstant(300)
 plug(robot.leftAnkleController.poseDes, robot.contactLF.featureDes.position)
-#plug(robot.leftAnkleController.vDes, robot.contactLF.featureDes.velocity)
-# fin after
 
 locals()['contactLF'] = robot.contactLF
 
-#robot.contactLFRef = MatrixHomoToPoseRollPitchYaw('contactLFRef')
-#plug(robot.contactLF.featureDes.position, robot.contactLFRef.sin)
-
 robot.contactRF = MetaTaskKine6d('contactRF', robot.dynamic, 'RF', robot.OperationalPointsMap['right-ankle'])
 robot.contactRF.feature.frame('desired')
-robot.contactRF.gain.setConstant(300) # 300 normally
-#robot.contactRF.task.controlGain.value = 0
-#plug(robot.wp.footRightDes, robot.contactRF.featureDes.position)  #.errorIN?
-# added 30.05
-#plug(robot.rightAnkleController.vDes, robot.contactRF.featureDes.velocity)
-# end added
+robot.contactRF.gain.setConstant(300)
 
 plug(robot.rightAnkleController.poseDes, robot.contactRF.featureDes.position)
 # test 02.07, il faudrait dPoseLF désiré par PG pour additionner à vDes (nulle dès que contact, mais entre ?)
@@ -373,7 +341,7 @@ robot.taskComH.feature.selec.value = '100'
 robot.taskCom = MetaTaskKineCom(robot.dynamic)
 plug(robot.com_admittance_control.comRef, robot.taskCom.featureDes.errorIN)
 plug(robot.com_admittance_control.dcomRef, robot.taskCom.featureDes.errordotIN)
-robot.taskCom.task.controlGain.value = 0
+robot.taskCom.task.controlGain.value = 0 #should maybe be 100 see dcm_zmp_control_flex
 robot.taskCom.task.setWithDerivative(True)
 robot.taskCom.feature.selec.value = '011'
 
@@ -410,15 +378,6 @@ plug(robot.dvdt.sout, robot.dynamic.acceleration)
 
 # -------------------------- PLOTS --------------------------
 
-# Reformatting data
-#robot.LeftFootRefPG = MatrixHomoToPoseRollPitchYaw('LeftFootRefPG')
-#plug(robot.pg.leftfootref, robot.LeftFootRefPG.sin)
-
-#robot.LeftFootDesAnkleCtrler = MatrixHomoToPoseRollPitchYaw('LeftFootDesAnkleCtrler')
-#plug(robot.leftAnkleController.poseDes, robot.LeftFootDesAnkleCtrler.sin)
-
-#robot.LeftFootDesAnkleCtrler = MatrixHomoToPoseRollPitchYaw('LeftFootDesAnkleCtrler')
-
 # --- ROS PUBLISHER
 
 robot.publisher = create_rospublish(robot, 'robot_publisher')
@@ -442,10 +401,10 @@ create_topic(robot.publisher, robot.wp, 'zmpDes', robot = robot, data_type ='vec
 create_topic(robot.publisher, robot.dcm_control, 'zmpRef', robot = robot, data_type ='vector')
 create_topic(robot.publisher, robot.dcm_control, 'zmpDes', robot = robot, data_type ='vector')
 
+create_topic(robot.publisher, robot.pg, 'contactphase', robot=robot, data_type='int')
+
 
 create_topic(robot.publisher, robot.pg, 'extForces', robot = robot, data_type='vector')
-
-#create_topic(robot.publisher, robot.LeftFootRefPG, 'sout', robot = robot, data_type ='vector')
 
 create_topic(robot.publisher, robot.device, 'state', robot=robot, data_type='vector')
 create_topic(robot.publisher, robot.base_estimator, 'q', robot=robot, data_type='vector')
@@ -466,11 +425,18 @@ create_topic(robot.publisher, robot.wrenchDistributor, 'surfaceWrenchRight', rob
 create_topic(robot.publisher, robot.wp, 'comDes', robot=robot, data_type='vector')
 create_topic(robot.publisher, robot.wrenchDistributor, 'staticFeetForces', robot=robot, data_type='vector')
 
+create_topic(robot.publisher, robot.zmp_estimator, 'poseLeft', robot=robot, data_type='matrixHomo') # produced by real_dynamics
+create_topic(robot.publisher, robot.zmp_estimator, 'poseRight', robot=robot, data_type='matrixHomo')
+create_topic(robot.publisher, robot.zmp_estimator, 'copLeft', robot=robot, data_type='matrixHomo') # produced by real_dynamics
+create_topic(robot.publisher, robot.zmp_estimator, 'copRight', robot=robot, data_type='matrixHomo')
+create_topic(robot.publisher, robot.zmp_estimator, 'zmp', robot=robot, data_type='vector')
 
 create_topic(robot.publisher, robot.wp, 'phaseDes', robot=robot, data_type='int')
 
 create_topic(robot.publisher, robot.leftAnkleController, 'dRP', robot=robot, data_type='vector')
 create_topic(robot.publisher, robot.rightAnkleController, 'dRP', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.leftAnkleController, 'vDes', robot=robot, data_type='vector')
+create_topic(robot.publisher, robot.rightAnkleController, 'vDes', robot=robot, data_type='vector')
 create_topic(robot.publisher, robot.leftAnkleController, 'poseDes', robot=robot, data_type='matrixHomo') # remettre matrix homo
 create_topic(robot.publisher, robot.rightAnkleController, 'poseDes', robot=robot, data_type='matrixHomo') # remettre matrix homo
 create_topic(robot.publisher, robot.LeftFootDesAnkleCtrler, 'sout', robot=robot, data_type='vector')
@@ -490,6 +456,13 @@ create_topic(robot.publisher, robot.contactLF.featureDes, 'position', robot=robo
 create_topic(robot.publisher, robot.contactLF.feature, 'position', robot=robot, data_type='matrixHomo')
 #create_topic(robot.publisher, robot.contactLF.feature, 'velocity', robot=robot, data_type='vector') # -> not plugged
 create_topic(robot.publisher, robot.sot, 'control', robot=robot, data_type='vector')
+
+create_topic(robot.publisher, robot.pg, 'velocitydes', robot=robot, data_type='vector')
+
+create_topic(robot.publisher, robot.dcm_control, 'zmpRef', robot=robot, data_type='vector') # new reference
+
+create_topic(robot.publisher, robot.estimator, 'dcm', robot=robot, data_type='vector') #estimated/measured DCM
+create_topic(robot.publisher, robot.wp, 'dcmDes', robot=robot, data_type='vector')# reference DCM from PG
 
 ## --- TRACER
 robot.tracer = TracerRealTime("com_tracer")

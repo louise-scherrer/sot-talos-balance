@@ -57,7 +57,7 @@ AnkleAdmittanceController::AnkleAdmittanceController(const std::string& name)
       CONSTRUCT_SIGNAL_IN(footRef, MatrixHomogeneous), //new
       CONSTRUCT_SIGNAL_OUT(dRP, dynamicgraph::Vector, INPUT_SIGNALS),
       CONSTRUCT_SIGNAL_OUT(vDes, dynamicgraph::Vector, m_dRPSOUT),
-      CONSTRUCT_SIGNAL_OUT(poseDes, MatrixHomogeneous, m_vDesSOUT << m_footRefSIN), //new REMETTRE Matrix HOMO -> DONE
+      CONSTRUCT_SIGNAL_OUT(poseDes, MatrixHomogeneous, m_vDesSOUT << m_footRefSIN), //new
       m_initSucceeded(false) {
   Entity::signalRegistration(INPUT_SIGNALS << OUTPUT_SIGNALS);
 
@@ -80,7 +80,7 @@ void AnkleAdmittanceController::init(const double& dt) { //new
   m_dt = dt; // new
   m_initSucceeded = true;
 
-  m_footDes.matrix().setZero(); // is syntax ok? a priori oui
+  m_footDes.matrix().setZero();
 }
 
 //added
@@ -119,9 +119,6 @@ DEFINE_SIGNAL_OUT_FUNCTION(dRP, dynamicgraph::Vector) {
 
   getProfiler().stop(PROFILE_ANKLEADMITTANCECONTROLLER_DRP_COMPUTATION);
 
-  // added 25.05 for real time loggers
-  DYNAMIC_GRAPH_ENTITY_DEBUG   (*this) << "This is a message of level MSG_TYPE_DEBUG dRP computed\n";
-
   return s;
 }
 
@@ -138,7 +135,7 @@ DEFINE_SIGNAL_OUT_FUNCTION(vDes, dynamicgraph::Vector) {
   s.segment<2>(3) = dRP;
   s[5] = 0;
 
-  //test clamp speed 17.07 0.2 limit
+  //test clamp speed 17.07, 0.2 limit should also be ok
   if (s[3] <= -0.1) s[3] = -0.1;
   if (s[3] >= 0.1) s[3] = 0.1;
 
@@ -148,16 +145,11 @@ DEFINE_SIGNAL_OUT_FUNCTION(vDes, dynamicgraph::Vector) {
   return s;
 }
 
-DEFINE_SIGNAL_OUT_FUNCTION(poseDes, MatrixHomogeneous) { // all new TO FIX AS MatrixHomogeneous
+DEFINE_SIGNAL_OUT_FUNCTION(poseDes, MatrixHomogeneous) { // new
   if (!m_initSucceeded) {
     SEND_WARNING_STREAM_MSG("Can't compute poseDes before initialization!");
     return s;
   }
-  //if (s.size() != 6) s.resize(6); matrix homo SOUT
-
-  //PETIT TEST
-  //if (s.size() != 7) s.resize(7);
-
   const Vector& vDes = m_vDesSOUT(iter);
   const MatrixHomogeneous& footRef = m_footRefSIN(iter);
 
@@ -167,24 +159,15 @@ DEFINE_SIGNAL_OUT_FUNCTION(poseDes, MatrixHomogeneous) { // all new TO FIX AS Ma
 
   qin.head<3>() = footRef.translation();  // if matrix homo SIN
 
-
-  // WHAT ORDER ? w last (Pinocchio's convention)
-
   Eigen::Map<VectorQuaternion> quat(qin.tail<4>().data()); // if matrix homo SIN From operator.cpp MatrixHomoToPoseQuaternion
   quat = footRef.linear();
 
   SE3().integrate(qin, vDes * m_dt, qout);
 
-  //TO FIX
   m_footDes.translation() = qout.head<3>(); // if matrix homo SOUT
 
-
-  //TO FIX
   const Eigen::Map<const Eigen::Quaterniond> quatout(qout.segment<4>(3).data()); // if matrix homo SOUT
   m_footDes.linear() = quatout.toRotationMatrix();
-
-  //PETIT TEST
-  //s = qout.head<7>();
 
   s = m_footDes;
   return s;

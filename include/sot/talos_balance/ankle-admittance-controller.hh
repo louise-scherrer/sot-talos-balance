@@ -71,7 +71,7 @@ class ANKLEADMITTANCECONTROLLER_EXPORT AnkleAdmittanceController : public ::dyna
 
   DECLARE_SIGNAL_OUT(dRP, dynamicgraph::Vector);
   DECLARE_SIGNAL_OUT(vDes, dynamicgraph::Vector);
-  DECLARE_SIGNAL_OUT(poseDes, MatrixHomogeneous); //new REMETTRE MATRIX homo
+  DECLARE_SIGNAL_OUT(poseDes, MatrixHomogeneous); //new
 
   /* --- COMMANDS --- */
   /* --- ENTITY INHERITANCE --- */
